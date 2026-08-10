@@ -1,0 +1,56 @@
+<nav class="navbar top-nav" [class.auth-only]="!isLoggedIn">
+  <div class="container nav-inner">
+    <a routerLink="/dashboard" class="brand">
+      <img src="assets/logo/dairy-logo.svg" alt="Dairy logo" />
+      <span class="brand-text">
+        <span>DairyPro</span>
+        <small>Management</small>
+      </span>
+    </a>
+    <div class="d-flex align-items-center gap-1 desktop-links">
+      <a routerLink="/login" routerLinkActive="active" *ngIf="!isLoggedIn">
+        <i class="bi bi-box-arrow-in-right me-1"></i>Login
+      </a>
+      <a routerLink="/register" routerLinkActive="active" *ngIf="!isLoggedIn">
+        <i class="bi bi-person-plus me-1"></i>Register
+      </a>
+      <a routerLink="/dashboard" routerLinkActive="active" *ngIf="isLoggedIn">
+        <i class="bi bi-house-door me-1"></i>Home
+      </a>
+      <a routerLink="/customers" routerLinkActive="active" *ngIf="isLoggedIn">
+        <i class="bi bi-people me-1"></i>Customers
+      </a>
+      <a routerLink="/milk" routerLinkActive="active" *ngIf="isLoggedIn">
+        <i class="bi bi-droplet me-1"></i>Collection
+      </a>
+      <a routerLink="/payment" routerLinkActive="active" *ngIf="isLoggedIn">
+        <i class="bi bi-wallet2 me-1"></i>Payments
+      </a>
+      <a routerLink="/reports" routerLinkActive="active" *ngIf="isLoggedIn">
+        <i class="bi bi-graph-up me-1"></i>Reports
+      </a>
+      <a routerLink="/more" routerLinkActive="active" *ngIf="isLoggedIn">
+        <i class="bi bi-grid me-1"></i>More
+      </a>
+      <button class="btn btn-sm btn-dairy-outline" type="button" (click)="logout()" *ngIf="isLoggedIn">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <router-outlet></router-outlet>
+</main>
+
+<nav class="bottom-nav" *ngIf="isLoggedIn" aria-label="Primary">
+  <a
+    *ngFor="let item of mobileNavItems"
+    [routerLink]="item.path"
+    routerLinkActive="active"
+    class="bottom-link"
+  >
+    <i class="bi" [ngClass]="item.icon"></i>
+    <span>{{ item.label }}</span>
+  </a>
+</nav>

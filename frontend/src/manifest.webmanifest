@@ -1,0 +1,18 @@
+{
+  "name": "DairyPro",
+  "short_name": "DairyPro",
+  "description": "Dairy Management Mobile App",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F9FC",
+  "theme_color": "#4A90E2",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/logo/dairy-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+<section class="page-head">
+  <div>
+    <h1 class="page-title">Reports</h1>
+    <p>Daily, monthly &amp; customer insights</p>
+  </div>
+  <img src="assets/illustrations/milk-can.svg" alt="" width="52" height="60" />
+</section>
+
+<section class="table-wrap">
+  <div class="card-pad">
+    <h2 class="section-title mb-0"><i class="bi bi-calendar-day me-2 text-primary"></i>Daily Report</h2>
+  </div>
+  <div class="empty-state m-3" *ngIf="!daily.length">
+    <img src="assets/illustrations/milk-drop.svg" alt="" />
+    <h4>No daily records</h4>
+    <p>Collection reports will appear once milk entries are saved.</p>
+  </div>
+  <div class="table-responsive" *ngIf="daily.length">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Quantity</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of daily">
+          <td>{{ r.date | date: "mediumDate" }}</td>
+          <td>{{ r.totalQuantity }} L</td>
+          <td>₹{{ r.totalAmount | number: "1.0-0" }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="table-wrap">
+  <div class="card-pad">
+    <h2 class="section-title mb-0"><i class="bi bi-calendar3 me-2 text-primary"></i>Monthly Report</h2>
+  </div>
+  <div class="empty-state m-3" *ngIf="!monthly.length">
+    <img src="assets/illustrations/cow.svg" alt="" />
+    <h4>No monthly data</h4>
+    <p>Monthly totals will show after ongoing collections.</p>
+  </div>
+  <div class="table-responsive" *ngIf="monthly.length">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Quantity</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of monthly">
+          <td>{{ r.month }}</td>
+          <td>{{ r.totalQuantity }} L</td>
+          <td>₹{{ r.totalAmount | number: "1.0-0" }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="table-wrap">
+  <div class="card-pad">
+    <h2 class="section-title mb-0"><i class="bi bi-person-lines-fill me-2 text-primary"></i>Customer-wise</h2>
+  </div>
+  <div class="empty-state m-3" *ngIf="!customer.length">
+    <img src="assets/illustrations/milk-bottle.svg" alt="" />
+    <h4>No customer reports</h4>
+    <p>Add customers and milk entries to view bills and dues.</p>
+  </div>
+  <div class="table-responsive" *ngIf="customer.length">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Qty</th>
+          <th>Bill</th>
+          <th>Paid</th>
+          <th>Pending</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of customer">
+          <td class="fw-semibold">{{ r.customerName }}</td>
+          <td>{{ r.totalQuantity }}</td>
+          <td>₹{{ r.billAmount | number: "1.0-0" }}</td>
+          <td>₹{{ r.paidAmount | number: "1.0-0" }}</td>
+          <td [class.text-danger]="r.pendingAmount > 0" class="fw-semibold">
+            ₹{{ r.pendingAmount | number: "1.0-0" }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

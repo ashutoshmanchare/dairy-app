@@ -1,0 +1,39 @@
+<app-entry-form [editEntry]="selectedEntry" (save)="onSave($event)"></app-entry-form>
+
+<div class="alert mt-3" [ngClass]="statusType === 'success' ? 'alert-success' : 'alert-danger'" *ngIf="statusMessage">
+  {{ statusMessage }}
+</div>
+
+<section class="card glass-card p-3" *ngIf="isLoading">Loading entries...</section>
+
+<section class="card glass-card p-3 mt-3">
+  <h4 class="mb-3"><i class="bi bi-journal-text me-2"></i>All Diary Entries</h4>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle" *ngIf="entries.length; else emptyState">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Description</th>
+          <th>Date</th>
+          <th>Mood</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let entry of entries">
+          <td>{{ entry.title }}</td>
+          <td>{{ entry.content }}</td>
+          <td>{{ entry.entryDate | date: "mediumDate" }}</td>
+          <td>{{ entry.mood }}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary me-2" (click)="edit(entry)">Edit</button>
+            <button class="btn btn-sm btn-outline-danger" (click)="remove(entry._id)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #emptyState>
+      <div class="text-muted py-3">No entries found.</div>
+    </ng-template>
+  </div>
+</section>

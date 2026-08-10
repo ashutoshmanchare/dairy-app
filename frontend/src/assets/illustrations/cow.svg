@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="cowBody" x1="40" y1="40" x2="160" y2="170" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F0F4F8"/>
+    </linearGradient>
+    <linearGradient id="cowSpot" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#4A5568"/>
+      <stop offset="1" stop-color="#2D3748"/>
+    </linearGradient>
+    <filter id="cowShadow" x="-20%" y="-10%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#1F2937" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+  <ellipse cx="100" cy="175" rx="55" ry="8" fill="#1F2937" opacity="0.08"/>
+  <g filter="url(#cowShadow)">
+    <ellipse cx="100" cy="118" rx="58" ry="48" fill="url(#cowBody)"/>
+    <ellipse cx="72" cy="100" rx="18" ry="14" fill="url(#cowSpot)" opacity="0.85"/>
+    <ellipse cx="120" cy="130" rx="14" ry="11" fill="url(#cowSpot)" opacity="0.75"/>
+    <circle cx="100" cy="62" r="32" fill="url(#cowBody)"/>
+    <ellipse cx="78" cy="38" rx="10" ry="14" fill="#FFF9F0" stroke="#E5E7EB" stroke-width="2"/>
+    <ellipse cx="122" cy="38" rx="10" ry="14" fill="#FFF9F0" stroke="#E5E7EB" stroke-width="2"/>
+    <ellipse cx="100" cy="72" rx="16" ry="10" fill="#FDE68A"/>
+    <circle cx="88" cy="58" r="3.5" fill="#1F2937"/>
+    <circle cx="112" cy="58" r="3.5" fill="#1F2937"/>
+    <ellipse cx="94" cy="74" rx="2.5" ry="2" fill="#1F2937" opacity="0.5"/>
+    <ellipse cx="106" cy="74" rx="2.5" ry="2" fill="#1F2937" opacity="0.5"/>
+    <path d="M70 118v40c0 4 4 8 8 8s8-4 8-8v-28" stroke="#E5E7EB" stroke-width="10" stroke-linecap="round"/>
+    <path d="M114 118v40c0 4 4 8 8 8s8-4 8-8v-28" stroke="#E5E7EB" stroke-width="10" stroke-linecap="round"/>
+    <ellipse cx="148" cy="100" rx="8" ry="14" fill="#F8B4B4" opacity="0.9"/>
+  </g>
+</svg>

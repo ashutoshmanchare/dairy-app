@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 200" fill="none">
+  <defs>
+    <linearGradient id="canBody" x1="40" y1="40" x2="140" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="0.45" stop-color="#E2E8F0"/>
+      <stop offset="1" stop-color="#CBD5E1"/>
+    </linearGradient>
+    <linearGradient id="canLid" x1="50" y1="20" x2="130" y2="55" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4A90E2"/>
+      <stop offset="1" stop-color="#6BB6FF"/>
+    </linearGradient>
+    <filter id="canShadow" x="-20%" y="-10%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#1F2937" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+  <ellipse cx="90" cy="186" rx="42" ry="7" fill="#1F2937" opacity="0.08"/>
+  <g filter="url(#canShadow)">
+    <path d="M48 70c0-8 8-16 20-20h44c12 4 20 12 20 20v96c0 14-12 24-28 24H76c-16 0-28-10-28-24V70z" fill="url(#canBody)"/>
+    <ellipse cx="90" cy="52" rx="42" ry="16" fill="url(#canLid)"/>
+    <ellipse cx="90" cy="48" rx="18" ry="7" fill="#2E7D32" opacity="0.9"/>
+    <path d="M42 90c-10 4-16 12-16 22s6 18 16 22" stroke="#94A3B8" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <path d="M138 90c10 4 16 12 16 22s-6 18-16 22" stroke="#94A3B8" stroke-width="8" stroke-linecap="round" fill="none"/>
+    <rect x="70" y="100" width="40" height="48" rx="8" fill="#FFFFFF" opacity="0.55"/>
+    <path d="M78 118h24M78 128h16" stroke="#4A90E2" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+  </g>
+</svg>

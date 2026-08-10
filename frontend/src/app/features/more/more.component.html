@@ -1,0 +1,62 @@
+<section class="page-head">
+  <div>
+    <h1 class="page-title">More</h1>
+    <p>Account, reports &amp; app settings</p>
+  </div>
+  <img src="assets/illustrations/milk-drop.svg" alt="" width="48" height="56" />
+</section>
+
+<section class="dm-card dm-card--cream mb-3 d-flex align-items-center gap-3">
+  <div class="avatar">{{ userName.charAt(0) }}</div>
+  <div>
+    <h3 class="card-title mb-0">{{ userName }}</h3>
+    <p class="support-text mb-0 mt-1">Dairy business account</p>
+  </div>
+</section>
+
+<div class="settings-group">
+  <div class="settings-group-title">Business</div>
+  <a class="settings-item" routerLink="/customers">
+    <i class="bi bi-people-fill lead"></i>
+    <span class="grow">Customers</span>
+    <i class="bi bi-chevron-right chevron"></i>
+  </a>
+  <a class="settings-item" routerLink="/milk">
+    <i class="bi bi-droplet-fill lead green"></i>
+    <span class="grow">Milk Collection</span>
+    <i class="bi bi-chevron-right chevron"></i>
+  </a>
+  <a class="settings-item" routerLink="/payment">
+    <i class="bi bi-wallet2 lead orange"></i>
+    <span class="grow">Payments</span>
+    <i class="bi bi-chevron-right chevron"></i>
+  </a>
+</div>
+
+<div class="settings-group">
+  <div class="settings-group-title">Reports &amp; Insights</div>
+  <a class="settings-item" routerLink="/reports">
+    <i class="bi bi-graph-up-arrow lead"></i>
+    <span class="grow">Reports</span>
+    <i class="bi bi-chevron-right chevron"></i>
+  </a>
+  <a class="settings-item" routerLink="/dashboard">
+    <i class="bi bi-speedometer2 lead green"></i>
+    <span class="grow">Dashboard</span>
+    <i class="bi bi-chevron-right chevron"></i>
+  </a>
+</div>
+
+<div class="settings-group">
+  <div class="settings-group-title">Account</div>
+  <a class="settings-item" routerLink="/register">
+    <i class="bi bi-person-plus-fill lead"></i>
+    <span class="grow">Add User</span>
+    <i class="bi bi-chevron-right chevron"></i>
+  </a>
+  <button class="settings-item" type="button" (click)="logout()">
+    <i class="bi bi-box-arrow-right lead danger"></i>
+    <span class="grow">Logout</span>
+    <i class="bi bi-chevron-right chevron"></i>
+  </button>
+</div>

@@ -1,0 +1,97 @@
+<section class="page-head">
+  <div>
+    <h1 class="page-title">Milk Collection</h1>
+    <p>Fast entry for daily milk records</p>
+  </div>
+  <img src="assets/illustrations/milk-can.svg" alt="" width="56" height="64" />
+</section>
+
+<div class="success-toast" *ngIf="msg">
+  <span class="check"><i class="bi bi-check-lg"></i></span>
+  <span>{{ msg }}</span>
+</div>
+
+<section class="dm-card">
+  <h2 class="section-title">New Entry</h2>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label class="form-label" for="customer-search">Customer</label>
+    <input
+      id="customer-search"
+      class="form-control mb-2"
+      type="search"
+      placeholder="Search customer..."
+      [(ngModel)]="customerFilter"
+      [ngModelOptions]="{ standalone: true }"
+    />
+    <select class="form-select mb-3" formControlName="customerId">
+      <option [ngValue]="0">Select Customer</option>
+      <option *ngFor="let c of filteredCustomers" [ngValue]="c.id">{{ c.name }} · {{ c.mobile }}</option>
+    </select>
+
+    <label class="form-label">Date</label>
+    <input class="form-control mb-3" type="date" formControlName="entryDate" />
+
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        <label class="form-label">Quantity</label>
+        <div class="field-unit">
+          <input class="form-control input-lg" type="number" step="0.01" formControlName="quantity" placeholder="0.00" />
+          <span class="unit">L</span>
+        </div>
+      </div>
+      <div class="col-6">
+        <label class="form-label">Rate</label>
+        <div class="field-unit">
+          <input class="form-control input-lg" type="number" step="0.01" formControlName="rate" placeholder="0" />
+          <span class="unit">₹</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-panel">
+      <h5>Milk Summary</h5>
+      <div class="formula">
+        {{ (form.value.quantity || 0) | number: "1.0-2" }} L × ₹{{ (form.value.rate || 0) | number: "1.0-2" }}
+      </div>
+      <div class="total-label">Total Amount</div>
+      <div class="total-value">₹{{ totalPreview | number: "1.2-2" }}</div>
+    </div>
+
+    <button class="btn btn-dairy btn-full mt-3" type="submit" [disabled]="saving">
+      <span class="spinner" *ngIf="saving" style="width:16px;height:16px;border-width:2px;"></span>
+      <i class="bi bi-save" *ngIf="!saving"></i>
+      {{ saving ? "Saving..." : "Save Milk Entry" }}
+    </button>
+  </form>
+</section>
+
+<section>
+  <h2 class="section-title">Recent Collections</h2>
+
+  <div class="list-stack" *ngIf="loading">
+    <div class="skeleton skeleton-card" *ngFor="let i of [1, 2]"></div>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !collections.length">
+    <img src="assets/illustrations/milk-drop.svg" alt="No collection" />
+    <h4>No collection records</h4>
+    <p>No milk collection found for your dairy yet.</p>
+  </div>
+
+  <div class="list-stack" *ngIf="!loading && collections.length">
+    <article class="list-item" *ngFor="let row of collections">
+      <div class="avatar green"><i class="bi bi-droplet-fill"></i></div>
+      <div class="list-item-body">
+        <h3 class="list-item-title">{{ row.customerName }}</h3>
+        <p class="list-item-sub">{{ row.entryDate | date: "mediumDate" }}</p>
+        <div class="list-item-meta">
+          <span>{{ row.quantity }} L × ₹{{ row.rate }}</span>
+          <span>₹{{ row.totalAmount | number: "1.0-0" }}</span>
+        </div>
+      </div>
+      <button class="btn btn-sm btn-dairy-danger" type="button" (click)="remove(row.id)" aria-label="Delete entry">
+        <i class="bi bi-trash"></i>
+      </button>
+    </article>
+  </div>
+</section>

@@ -1,0 +1,76 @@
+<section class="page-head">
+  <div>
+    <h1 class="page-title">Customers</h1>
+    <p>{{ customers.length }} registered customers</p>
+  </div>
+  <img src="assets/illustrations/milk-bottle.svg" alt="" width="52" height="64" />
+</section>
+
+<div class="success-toast" *ngIf="msg">
+  <span class="check"><i class="bi bi-check-lg"></i></span>
+  <span>{{ msg }}</span>
+</div>
+
+<div class="list-stack" *ngIf="loading">
+  <div class="skeleton skeleton-card" *ngFor="let i of [1, 2, 3]"></div>
+</div>
+
+<div class="empty-state" *ngIf="!loading && !customers.length">
+  <img src="assets/illustrations/cow.svg" alt="No customers" />
+  <h4>No customers yet</h4>
+  <p>Add your first dairy customer to start collecting milk records.</p>
+  <button class="btn btn-dairy" type="button" (click)="openAdd()">
+    <i class="bi bi-person-plus"></i> Add Customer
+  </button>
+</div>
+
+<div class="list-stack" *ngIf="!loading && customers.length">
+  <article class="list-item" *ngFor="let c of customers">
+    <div class="avatar">{{ initials(c.name) }}</div>
+    <div class="list-item-body">
+      <h3 class="list-item-title">{{ c.name }}</h3>
+      <p class="list-item-sub">CUS-{{ c.id }} · {{ c.mobile }}</p>
+      <div class="list-item-meta">
+        <span class="meta-muted"><i class="bi bi-geo-alt"></i> {{ c.address }}</span>
+      </div>
+    </div>
+    <div class="d-flex flex-column gap-2">
+      <button class="btn btn-sm btn-dairy-outline" type="button" (click)="edit(c)" aria-label="Edit customer">
+        <i class="bi bi-pencil"></i>
+      </button>
+      <button class="btn btn-sm btn-dairy-danger" type="button" (click)="remove(c.id)" aria-label="Delete customer">
+        <i class="bi bi-trash"></i>
+      </button>
+    </div>
+  </article>
+</div>
+
+<button class="fab no-print" type="button" (click)="openAdd()" aria-label="Add customer" *ngIf="customers.length || !loading">
+  <i class="bi bi-plus-lg"></i>
+</button>
+
+<div class="modal-sheet no-print" *ngIf="showForm" (click)="closeForm()">
+  <div class="modal-sheet-card" (click)="$event.stopPropagation()">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h2 class="section-title mb-0">{{ editingId ? "Edit Customer" : "Add Customer" }}</h2>
+      <button class="btn btn-sm btn-light btn-icon" type="button" (click)="closeForm()" aria-label="Close">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label class="form-label">Customer Name</label>
+      <input class="form-control mb-3" placeholder="Full name" formControlName="name" />
+
+      <label class="form-label">Mobile</label>
+      <input class="form-control mb-3" placeholder="10-digit mobile" formControlName="mobile" />
+
+      <label class="form-label">Address</label>
+      <input class="form-control mb-4" placeholder="Village / area" formControlName="address" />
+
+      <button class="btn btn-dairy btn-full" type="submit">
+        <i class="bi bi-check2-circle"></i>
+        {{ editingId ? "Update Customer" : "Save Customer" }}
+      </button>
+    </form>
+  </div>
+</div>

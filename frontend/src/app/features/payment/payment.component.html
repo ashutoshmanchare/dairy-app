@@ -1,0 +1,162 @@
+<section class="page-head no-print">
+  <div>
+    <h1 class="page-title">Payments</h1>
+    <p>Record collections &amp; track balances</p>
+  </div>
+  <img src="assets/illustrations/milk-bottle.svg" alt="" width="48" height="60" />
+</section>
+
+<section class="balance-panel no-print">
+  <div class="label">Outstanding Balance</div>
+  <div class="amount">₹{{ pendingAmount | number: "1.0-0" }}</div>
+  <div class="hint">Paid to date: ₹{{ paidAmount | number: "1.0-0" }}</div>
+</section>
+
+<div class="success-toast no-print" *ngIf="msg">
+  <span class="check"><i class="bi bi-check-lg"></i></span>
+  <span>{{ msg }}</span>
+</div>
+
+<section class="dm-card no-print" *ngIf="paidPlan">
+  <div class="success-toast mb-0">
+    <span class="check"><i class="bi bi-check-lg"></i></span>
+    <span>Payment successful for {{ paidPlan }} plan (demo).</span>
+  </div>
+</section>
+
+<section class="dm-card no-print">
+  <h2 class="section-title">Record Payment</h2>
+  <form [formGroup]="form" (ngSubmit)="submitPayment()">
+    <label class="form-label">Customer</label>
+    <select class="form-select mb-3" formControlName="customerId">
+      <option [ngValue]="0">Select Customer</option>
+      <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.name }}</option>
+    </select>
+
+    <label class="form-label">Payment Amount</label>
+    <div class="field-unit mb-3">
+      <input class="form-control input-lg" type="number" step="0.01" formControlName="amount" placeholder="0" />
+      <span class="unit">₹</span>
+    </div>
+
+    <label class="form-label">Payment Method</label>
+    <div class="chip-group mb-3">
+      <button type="button" class="chip" [class.active]="paymentMethod === 'Cash'" (click)="selectMethod('Cash')">
+        <i class="bi bi-cash"></i> Cash
+      </button>
+      <button type="button" class="chip" [class.active]="paymentMethod === 'UPI'" (click)="selectMethod('UPI')">
+        <i class="bi bi-phone"></i> UPI
+      </button>
+      <button type="button" class="chip" [class.active]="paymentMethod === 'Bank'" (click)="selectMethod('Bank')">
+        <i class="bi bi-bank"></i> Bank
+      </button>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        <label class="form-label">Date</label>
+        <input class="form-control" type="date" formControlName="paymentDate" />
+      </div>
+      <div class="col-6">
+        <label class="form-label">Status</label>
+        <select class="form-select" formControlName="status">
+          <option value="paid">Paid</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+    </div>
+
+    <label class="form-label">Notes</label>
+    <input class="form-control mb-3" formControlName="notes" placeholder="Optional note" />
+
+    <button class="btn btn-dairy btn-full" type="submit" [disabled]="saving">
+      <span class="spinner" *ngIf="saving" style="width:16px;height:16px;border-width:2px;"></span>
+      <i class="bi bi-check2-circle" *ngIf="!saving"></i>
+      {{ saving ? "Saving..." : "Save Payment" }}
+    </button>
+  </form>
+</section>
+
+<section class="dm-card" *ngIf="showReceipt && lastReceipt" id="receipt-print">
+  <div class="receipt">
+    <div class="receipt-header">
+      <img src="assets/logo/dairy-logo.svg" alt="DairyPro" />
+      <h3 class="mb-1 fw-bold">DairyPro</h3>
+      <p class="support-text mb-0">Payment Receipt</p>
+    </div>
+    <div class="receipt-row"><span>Receipt No.</span><strong>{{ lastReceipt.receiptNo }}</strong></div>
+    <div class="receipt-row"><span>Date</span><strong>{{ lastReceipt.date | date: "mediumDate" }}</strong></div>
+    <div class="receipt-row"><span>Customer</span><strong>{{ lastReceipt.customerName }}</strong></div>
+    <div class="receipt-row"><span>Method</span><strong>{{ lastReceipt.method }}</strong></div>
+    <div class="receipt-row"><span>Status</span><strong>{{ lastReceipt.status | titlecase }}</strong></div>
+    <div class="receipt-row" *ngIf="lastReceipt.notes"><span>Notes</span><strong>{{ lastReceipt.notes }}</strong></div>
+    <div class="receipt-total">
+      <span>Amount Paid</span>
+      <span>₹{{ lastReceipt.amount | number: "1.2-2" }}</span>
+    </div>
+    <p class="receipt-thanks">Thank you for your payment. Fresh milk, trusted service.</p>
+  </div>
+  <div class="d-flex gap-2 mt-3 no-print">
+    <button class="btn btn-dairy-outline flex-fill" type="button" (click)="printReceipt()">
+      <i class="bi bi-printer"></i> Print
+    </button>
+    <button class="btn btn-dairy flex-fill" type="button" (click)="shareReceipt()">
+      <i class="bi bi-share"></i> Share
+    </button>
+  </div>
+</section>
+
+<section class="no-print mb-4">
+  <h2 class="section-title">Subscription Plans</h2>
+  <div class="row g-3">
+    <div class="col-6">
+      <div class="dm-card h-100 mb-0">
+        <h5 class="card-title">Basic</h5>
+        <p class="support-text">Small dairy records</p>
+        <div class="stat-value mb-3">$9<span class="support-text fw-normal">/mo</span></div>
+        <button class="btn btn-dairy-outline btn-full btn-sm" type="button" (click)="pay('Basic')">Pay Demo</button>
+      </div>
+    </div>
+    <div class="col-6">
+      <div class="dm-card h-100 mb-0" style="border-color: rgba(74,144,226,0.35);">
+        <h5 class="card-title">Premium</h5>
+        <p class="support-text">Unlimited entries</p>
+        <div class="stat-value mb-3">$19<span class="support-text fw-normal">/mo</span></div>
+        <button class="btn btn-dairy btn-full btn-sm" type="button" (click)="pay('Premium')">Pay Demo</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="no-print">
+  <h2 class="section-title">Payment History</h2>
+
+  <div class="list-stack" *ngIf="loading">
+    <div class="skeleton skeleton-card" *ngFor="let i of [1, 2]"></div>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !payments.length">
+    <img src="assets/illustrations/milk-drop.svg" alt="No payments" />
+    <h4>No payments yet</h4>
+    <p>Record a customer payment to see history and receipts here.</p>
+  </div>
+
+  <div class="list-stack" *ngIf="!loading && payments.length">
+    <article class="list-item" *ngFor="let p of payments">
+      <div class="avatar" [class.green]="p.status === 'paid'">
+        <i class="bi" [ngClass]="p.status === 'paid' ? 'bi-check-lg' : 'bi-clock'"></i>
+      </div>
+      <div class="list-item-body">
+        <h3 class="list-item-title">{{ p.customerName }}</h3>
+        <p class="list-item-sub">{{ p.paymentDate | date: "mediumDate" }} · {{ p.notes || "—" }}</p>
+        <div class="list-item-meta">
+          <span>₹{{ p.amount | number: "1.0-0" }}</span>
+          <span class="badge-soft" [class.success]="p.status === 'paid'" [class.warning]="p.status !== 'paid'">
+            {{ p.status }}
+          </span>
+        </div>
+      </div>
+      <i class="bi bi-chevron-right chevron"></i>
+    </article>
+  </div>
+</section>

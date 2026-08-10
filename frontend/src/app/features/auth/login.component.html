@@ -1,0 +1,64 @@
+<section class="auth-page">
+  <div class="auth-card">
+    <img class="auth-decor" src="assets/illustrations/milk-drop.svg" alt="" aria-hidden="true" />
+    <div class="auth-hero">
+      <img class="logo" src="assets/logo/dairy-logo.svg" alt="DairyPro" />
+      <img class="illust" src="assets/illustrations/cow.svg" alt="Dairy cow illustration" />
+      <h1>Welcome Back</h1>
+      <p>Manage your dairy business smarter.</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label class="form-label" for="login-username">Username / Mobile</label>
+      <div class="input-group mb-1">
+        <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px; border-color: var(--border-soft);">
+          <i class="bi bi-person text-secondary"></i>
+        </span>
+        <input
+          id="login-username"
+          class="form-control border-start-0"
+          style="border-radius: 0 12px 12px 0;"
+          type="text"
+          formControlName="username"
+          placeholder="Enter username"
+          autocomplete="username"
+        />
+      </div>
+      <small class="text-danger d-block mb-2" *ngIf="form.controls.username.touched && form.controls.username.invalid">
+        Username is required
+      </small>
+
+      <label class="form-label mt-2" for="login-password">Password</label>
+      <div class="input-group mb-1">
+        <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px; border-color: var(--border-soft);">
+          <i class="bi bi-lock text-secondary"></i>
+        </span>
+        <input
+          id="login-password"
+          class="form-control border-start-0"
+          style="border-radius: 0 12px 12px 0;"
+          type="password"
+          formControlName="password"
+          placeholder="Enter password"
+          autocomplete="current-password"
+        />
+      </div>
+      <small class="text-danger d-block mb-2" *ngIf="form.controls.password.touched && form.controls.password.invalid">
+        Password is required
+      </small>
+
+      <button class="btn btn-dairy btn-full mt-3" type="submit" [disabled]="loading">
+        <span class="spinner" *ngIf="loading" style="width:16px;height:16px;border-width:2px;"></span>
+        <i class="bi bi-box-arrow-in-right" *ngIf="!loading"></i>
+        {{ loading ? "Signing in..." : "Login" }}
+      </button>
+      <div class="alert alert-danger mt-3 py-2 mb-0" *ngIf="error">{{ error }}</div>
+    </form>
+
+    <p class="mt-4 mb-0 text-center body-text">
+      New user?
+      <a routerLink="/register" class="fw-semibold">Create account</a>
+    </p>
+    <p class="support-text text-center mt-2 mb-0">Demo: Ashu.M / 123</p>
+  </div>
+</section>

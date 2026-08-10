@@ -1,0 +1,39 @@
+<section class="auth-page">
+  <div class="auth-card">
+    <img class="auth-decor" src="assets/illustrations/milk-bottle.svg" alt="" aria-hidden="true" />
+    <div class="auth-hero">
+      <img class="logo" src="assets/logo/dairy-logo.svg" alt="DairyPro" />
+      <h1>Create Account</h1>
+      <p>Set up access for your dairy team.</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <label class="form-label">Full Name</label>
+      <input class="form-control" type="text" formControlName="name" placeholder="Enter full name" />
+
+      <label class="form-label mt-3">Username</label>
+      <input class="form-control" type="text" formControlName="username" placeholder="Choose username" />
+
+      <label class="form-label mt-3">Password</label>
+      <input class="form-control" type="password" formControlName="password" placeholder="Create password" />
+
+      <label class="form-label mt-3">Role</label>
+      <select class="form-select" formControlName="role">
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select>
+
+      <button class="btn btn-dairy-success btn-full mt-4" type="submit" [disabled]="loading">
+        <span class="spinner" *ngIf="loading" style="width:16px;height:16px;border-width:2px;"></span>
+        <i class="bi bi-person-check" *ngIf="!loading"></i>
+        {{ loading ? "Creating..." : "Create Account" }}
+      </button>
+      <div class="alert alert-danger mt-3 py-2 mb-0" *ngIf="error">{{ error }}</div>
+    </form>
+
+    <p class="mt-4 mb-0 text-center body-text">
+      Already registered?
+      <a routerLink="/login" class="fw-semibold">Login</a>
+    </p>
+  </div>
+</section>
