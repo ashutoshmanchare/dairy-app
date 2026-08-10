@@ -18,6 +18,7 @@
             "polyfills": ["zone.js"],
             "assets": ["src/assets", "src/manifest.webmanifest"],
             "styles": ["src/styles.css"],
+            "outputHashing": "all",
             "optimization": {
               "scripts": true,
               "styles": true,
