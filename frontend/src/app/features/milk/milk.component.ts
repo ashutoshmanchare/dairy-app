@@ -183,6 +183,8 @@ export class MilkComponent implements OnInit {
     }
   }
 
+  lastSavedEntry: any = null;
+
   submit(): void {
     if (this.form.invalid || Number(this.form.value.customerId) === 0) {
       this.form.markAllAsTouched();
@@ -211,6 +213,7 @@ export class MilkComponent implements OnInit {
       
       this.offlineService.saveToQueue(offlineEntry);
       this.msg = "Saved offline (Pending sync)";
+      this.lastSavedEntry = offlineEntry;
       
       this.form.patchValue({
         farmerCode: "",
@@ -231,7 +234,7 @@ export class MilkComponent implements OnInit {
         if (this.farmerCodeInput) {
           this.farmerCodeInput.nativeElement.focus();
         }
-      }, 1000);
+      }, 5000); // Keep open slightly longer for WhatsApp button click
       
       return;
     }
@@ -239,9 +242,10 @@ export class MilkComponent implements OnInit {
     // Online Flow
     this.saving = true;
     this.milkService.addCollection(payload as any).subscribe({
-      next: () => {
+      next: (res) => {
         this.msg = "Milk entry saved successfully!";
         this.saving = false;
+        this.lastSavedEntry = res;
         
         this.form.patchValue({
           farmerCode: "",
@@ -262,11 +266,40 @@ export class MilkComponent implements OnInit {
           if (this.farmerCodeInput) {
             this.farmerCodeInput.nativeElement.focus();
           }
-        }, 1000);
+        }, 5000); // Keep open slightly longer for WhatsApp button click
       },
       error: () => {
         this.saving = false;
       }
     });
+  }
+
+  shareWhatsApp(row: MilkCollection | any): void {
+    const customer = this.customers.find(c => c.id === row.customerId);
+    if (!customer || !customer.mobile) {
+      alert("Farmer mobile number not found or invalid!");
+      return;
+    }
+    const cleanMobile = customer.mobile.replace(/[^0-9]/g, "");
+    const targetMobile = cleanMobile.length > 10 ? cleanMobile.slice(-10) : cleanMobile;
+    const formattedDate = new Date(row.entryDate).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    });
+    
+    const messageText = `*Milk Collection Receipt*
+Date: ${formattedDate} (${row.shift.toUpperCase()})
+Farmer: ${customer.name} (#${customer.farmerCode || 'N/A'})
+Qty: ${row.quantity} L
+FAT: ${row.fat}%
+SNF: ${row.snf}%
+Rate: ₹${row.rate.toFixed(2)}/L
+*Total: ₹${row.totalAmount.toFixed(2)}*
+Thank you! - Dairy Center`;
+
+    const encodedText = encodeURIComponent(messageText);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=91${targetMobile}&text=${encodedText}`;
+    window.open(whatsappUrl, "_blank");
   }
 }
