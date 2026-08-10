@@ -1,62 +1,95 @@
 <section class="page-head">
   <div>
-    <h1 class="page-title">More</h1>
-    <p>Account, reports &amp; app settings</p>
+    <h1 class="page-title">Center Settings</h1>
+    <p>Account, billing configurations &amp; modules settings</p>
   </div>
-  <img src="assets/illustrations/milk-drop.svg" alt="" width="48" height="56" />
+  <i class="bi bi-grid-fill text-teal" style="font-size: 2.2rem;"></i>
 </section>
 
-<section class="dm-card dm-card--cream mb-3 d-flex align-items-center gap-3">
-  <div class="avatar">{{ userName.charAt(0) }}</div>
+<section class="dm-card mb-3 d-flex align-items-center gap-3">
+  <div class="avatar bg-teal">{{ userName.charAt(0) }}</div>
   <div>
     <h3 class="card-title mb-0">{{ userName }}</h3>
-    <p class="support-text mb-0 mt-1">Dairy business account</p>
+    <p class="support-text mb-0 mt-1">Shree Dairy Admin Center</p>
   </div>
 </section>
 
+<!-- Business Setup -->
 <div class="settings-group">
-  <div class="settings-group-title">Business</div>
+  <div class="settings-group-title">Business Config</div>
   <a class="settings-item" routerLink="/customers">
-    <i class="bi bi-people-fill lead"></i>
-    <span class="grow">Customers</span>
+    <i class="bi bi-people-fill lead text-teal"></i>
+    <span class="grow">Farmers / Customers</span>
     <i class="bi bi-chevron-right chevron"></i>
   </a>
   <a class="settings-item" routerLink="/milk">
-    <i class="bi bi-droplet-fill lead green"></i>
+    <i class="bi bi-droplet-fill lead text-teal"></i>
     <span class="grow">Milk Collection</span>
     <i class="bi bi-chevron-right chevron"></i>
   </a>
+  <a class="settings-item" routerLink="/rate-chart">
+    <i class="bi bi-grid-3x3-gap-fill lead text-teal"></i>
+    <span class="grow">Rate Charts Setup</span>
+    <i class="bi bi-chevron-right chevron"></i>
+  </a>
   <a class="settings-item" routerLink="/payment">
-    <i class="bi bi-wallet2 lead orange"></i>
-    <span class="grow">Payments</span>
+    <i class="bi bi-wallet2 lead text-teal"></i>
+    <span class="grow">Payouts Disbursal</span>
+    <i class="bi bi-chevron-right chevron"></i>
+  </a>
+  <a class="settings-item" routerLink="/invoice">
+    <i class="bi bi-receipt-cutoff lead text-teal"></i>
+    <span class="grow">Generate Billing Slips</span>
     <i class="bi bi-chevron-right chevron"></i>
   </a>
 </div>
 
+<!-- Stock & Loans -->
+<div class="settings-group">
+  <div class="settings-group-title">Inventory & Accounts</div>
+  <a class="settings-item" routerLink="/feed">
+    <i class="bi bi-bag-check-fill lead text-teal"></i>
+    <span class="grow">Cattle Feed Stock</span>
+    <i class="bi bi-chevron-right chevron"></i>
+  </a>
+  <a class="settings-item" routerLink="/advance">
+    <i class="bi bi-cash-coin lead text-teal"></i>
+    <span class="grow">Disburse Advances</span>
+    <i class="bi bi-chevron-right chevron"></i>
+  </a>
+  <a class="settings-item" routerLink="/deduction">
+    <i class="bi bi-percent lead text-teal"></i>
+    <span class="grow">Manage Deductions</span>
+    <i class="bi bi-chevron-right chevron"></i>
+  </a>
+</div>
+
+<!-- Reports & Insights -->
 <div class="settings-group">
   <div class="settings-group-title">Reports &amp; Insights</div>
   <a class="settings-item" routerLink="/reports">
-    <i class="bi bi-graph-up-arrow lead"></i>
+    <i class="bi bi-graph-up-arrow lead text-teal"></i>
     <span class="grow">Reports</span>
     <i class="bi bi-chevron-right chevron"></i>
   </a>
   <a class="settings-item" routerLink="/dashboard">
-    <i class="bi bi-speedometer2 lead green"></i>
-    <span class="grow">Dashboard</span>
+    <i class="bi bi-speedometer2 lead text-teal"></i>
+    <span class="grow">Dashboard Analytics</span>
     <i class="bi bi-chevron-right chevron"></i>
   </a>
 </div>
 
+<!-- Account -->
 <div class="settings-group">
-  <div class="settings-group-title">Account</div>
+  <div class="settings-group-title">System Account</div>
   <a class="settings-item" routerLink="/register">
-    <i class="bi bi-person-plus-fill lead"></i>
-    <span class="grow">Add User</span>
+    <i class="bi bi-person-plus-fill lead text-teal"></i>
+    <span class="grow">Add System User</span>
     <i class="bi bi-chevron-right chevron"></i>
   </a>
   <button class="settings-item" type="button" (click)="logout()">
-    <i class="bi bi-box-arrow-right lead danger"></i>
-    <span class="grow">Logout</span>
+    <i class="bi bi-box-arrow-right lead text-danger"></i>
+    <span class="grow text-danger fw-semibold">Logout</span>
     <i class="bi bi-chevron-right chevron"></i>
   </button>
 </div>

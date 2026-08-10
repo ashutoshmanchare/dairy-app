@@ -4,13 +4,20 @@ import { Observable } from "rxjs";
 import { ApiService } from "./api.service";
 
 interface Summary {
-  totalMilk: number;
+  totalMilk?: number;
   todayMilk: number;
-  monthlyMilk: number;
-  totalCustomers: number;
-  totalPayments: number;
-  paidAmount: number;
-  pendingAmount: number;
+  todayAmount: number;
+  pendingPayment: number;
+  totalFarmers: number;
+  cowMilk?: number;
+  buffaloMilk?: number;
+  morningMilk?: number;
+  eveningMilk?: number;
+  monthlyMilk?: number;
+  totalCustomers?: number;
+  totalPayments?: number;
+  paidAmount?: number;
+  pendingAmount?: number;
 }
 
 @Injectable({ providedIn: "root" })

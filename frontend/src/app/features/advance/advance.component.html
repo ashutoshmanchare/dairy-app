@@ -1,0 +1,83 @@
+<section class="page-head">
+  <div>
+    <h1 class="page-title">Farmer Advance</h1>
+    <p>Distribute and manage advances/loans to farmers</p>
+  </div>
+  <i class="bi bi-cash-coin text-teal" style="font-size: 2.2rem;"></i>
+</section>
+
+<div class="success-toast" *ngIf="msg">
+  <span class="check"><i class="bi bi-check-lg"></i></span>
+  <span>{{ msg }}</span>
+</div>
+
+<!-- Record Advance -->
+<section class="dm-card mb-4">
+  <h2 class="section-title">New Advance Payout</h2>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label class="form-label">Search Farmer</label>
+    <input
+      class="form-control mb-2"
+      type="search"
+      placeholder="Type farmer name or code..."
+      [(ngModel)]="customerFilter"
+      [ngModelOptions]="{ standalone: true }"
+    />
+    <select class="form-select mb-3" formControlName="customerId">
+      <option [ngValue]="0">Select Farmer</option>
+      <option *ngFor="let c of filteredCustomers" [ngValue]="c.id">
+        #{{ c.farmerCode }} · {{ c.name }} · {{ c.village }}
+      </option>
+    </select>
+
+    <label class="form-label">Date</label>
+    <input class="form-control mb-3" type="date" formControlName="advanceDate" />
+
+    <label class="form-label">Advance Amount (₹)</label>
+    <input class="form-control mb-3 input-lg" type="number" formControlName="amount" placeholder="0" />
+
+    <label class="form-label">Notes / Reason</label>
+    <input class="form-control mb-3" type="text" formControlName="notes" placeholder="e.g. Purchase of cattle feed / cow loan" />
+
+    <button class="btn btn-dairy btn-full" type="submit" [disabled]="saving">
+      <span class="spinner" *ngIf="saving" style="width:16px;height:16px;border-width:2px;"></span>
+      <i class="bi bi-wallet" *ngIf="!saving"></i>
+      {{ saving ? "Recording..." : "Disburse Advance" }}
+    </button>
+  </form>
+</section>
+
+<!-- Advances History -->
+<section>
+  <h2 class="section-title">Advances Ledger</h2>
+  
+  <div class="list-stack" *ngIf="loading">
+    <div class="skeleton skeleton-card" *ngFor="let i of [1, 2]"></div>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !advances.length">
+    <i class="bi bi-journal-text text-muted" style="font-size: 3rem;"></i>
+    <h4>No Advances recorded</h4>
+    <p>Loans or advances issued to farmers will be displayed here.</p>
+  </div>
+
+  <div class="list-stack" *ngIf="!loading && advances.length">
+    <article class="list-item" *ngFor="let row of advances">
+      <div class="avatar bg-teal"><i class="bi bi-cash"></i></div>
+      <div class="list-item-body">
+        <h3 class="list-item-title">{{ row.customerName }} <small class="text-secondary">(#{{ row.farmerCode }})</small></h3>
+        <p class="list-item-sub">{{ row.advanceDate | date: 'mediumDate' }} · {{ row.notes || 'No notes' }}</p>
+        <div class="list-item-meta mt-1">
+          <span class="text-teal">Total: ₹{{ row.amount }}</span>
+          <span class="text-secondary">Recovered: ₹{{ row.recoveredAmount }}</span>
+          <span class="badge bg-warning text-dark" *ngIf="row.amount - row.recoveredAmount > 0">
+            Due: ₹{{ row.amount - row.recoveredAmount }}
+          </span>
+          <span class="badge bg-success text-white" *ngIf="row.amount - row.recoveredAmount <= 0">
+            Recovered
+          </span>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>

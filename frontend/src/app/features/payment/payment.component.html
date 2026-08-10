@@ -1,15 +1,9 @@
 <section class="page-head no-print">
   <div>
-    <h1 class="page-title">Payments</h1>
-    <p>Record collections &amp; track balances</p>
+    <h1 class="page-title">Payouts & Payments</h1>
+    <p>Perform range-based batched decade payouts for farmers</p>
   </div>
-  <img src="assets/illustrations/milk-bottle.svg" alt="" width="48" height="60" />
-</section>
-
-<section class="balance-panel no-print">
-  <div class="label">Outstanding Balance</div>
-  <div class="amount">₹{{ pendingAmount | number: "1.0-0" }}</div>
-  <div class="hint">Paid to date: ₹{{ paidAmount | number: "1.0-0" }}</div>
+  <i class="bi bi-wallet2 text-teal" style="font-size: 2.2rem;"></i>
 </section>
 
 <div class="success-toast no-print" *ngIf="msg">
@@ -17,146 +11,172 @@
   <span>{{ msg }}</span>
 </div>
 
-<section class="dm-card no-print" *ngIf="paidPlan">
-  <div class="success-toast mb-0">
-    <span class="check"><i class="bi bi-check-lg"></i></span>
-    <span>Payment successful for {{ paidPlan }} plan (demo).</span>
-  </div>
-</section>
-
+<!-- Record Payment Form -->
 <section class="dm-card no-print">
-  <h2 class="section-title">Record Payment</h2>
+  <h2 class="section-title">New Farmer Payout</h2>
   <form [formGroup]="form" (ngSubmit)="submitPayment()">
-    <label class="form-label">Customer</label>
-    <select class="form-select mb-3" formControlName="customerId">
-      <option [ngValue]="0">Select Customer</option>
-      <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.name }}</option>
+    
+    <!-- Payout Batch Date Range -->
+    <div class="row g-2 mb-3 bg-light p-2 rounded small">
+      <div class="col-6">
+        <label class="form-label mb-1">Billing Start Date</label>
+        <input class="form-control form-control-sm" type="date" [(ngModel)]="startDate" [ngModelOptions]="{ standalone: true }" (change)="onDatesChange()" />
+      </div>
+      <div class="col-6">
+        <label class="form-label mb-1">Billing End Date</label>
+        <input class="form-control form-control-sm" type="date" [(ngModel)]="endDate" [ngModelOptions]="{ standalone: true }" (change)="onDatesChange()" />
+      </div>
+    </div>
+
+    <!-- Farmer Selection -->
+    <label class="form-label">Select Farmer</label>
+    <input
+      class="form-control mb-2"
+      type="search"
+      placeholder="Type name or code to filter..."
+      [(ngModel)]="customerFilter"
+      [ngModelOptions]="{ standalone: true }"
+    />
+    <select class="form-select mb-3" formControlName="customerId" (change)="onCustomerChange($event)">
+      <option [ngValue]="0">Select Farmer</option>
+      <option *ngFor="let c of filteredCustomers" [ngValue]="c.id">
+        #{{ c.farmerCode }} · {{ c.name }} ({{ c.village }})
+      </option>
     </select>
 
-    <label class="form-label">Payment Amount</label>
+    <!-- Real-time calculation preview -->
+    <div class="alert alert-info py-2 text-center" *ngIf="calculatingSummary">
+      <span class="spinner" style="width:16px;height:16px;border-width:2px;"></span> Calculating payout...
+    </div>
+
+    <div class="summary-panel p-3 bg-light border rounded mb-3 small" *ngIf="summary && !calculatingSummary">
+      <h6 class="fw-bold border-bottom pb-1 mb-2 text-teal">PAYOUT ESTIMATE</h6>
+      <div class="d-flex justify-content-between py-1">
+        <span>Milk Volume (L):</span>
+        <strong>{{ summary.totalQuantity }} L</strong>
+      </div>
+      <div class="d-flex justify-content-between py-1">
+        <span>Gross Milk Bill:</span>
+        <span>₹{{ summary.grossAmount | number: '1.2-2' }}</span>
+      </div>
+      <div class="d-flex justify-content-between py-1 text-danger">
+        <span>Feed & Medicine Deductions:</span>
+        <span>- ₹{{ summary.totalDeductions | number: '1.2-2' }}</span>
+      </div>
+      <div class="d-flex justify-content-between py-1 text-danger">
+        <span>Advance Cash Recovered:</span>
+        <span>- ₹{{ summary.advanceRecovery | number: '1.2-2' }}</span>
+      </div>
+      <div class="d-flex justify-content-between py-2 fw-bold border-top text-teal fs-6">
+        <span>NET DISBURSAL AMOUNT:</span>
+        <span>₹{{ summary.netAmount | number: '1.2-2' }}</span>
+      </div>
+    </div>
+
+    <!-- Payout amount override (default is netAmount) -->
+    <label class="form-label">Payment Amount Disbursed (₹)</label>
     <div class="field-unit mb-3">
       <input class="form-control input-lg" type="number" step="0.01" formControlName="amount" placeholder="0" />
       <span class="unit">₹</span>
     </div>
 
-    <label class="form-label">Payment Method</label>
+    <!-- Payout Method -->
+    <label class="form-label">Disbursal Method</label>
     <div class="chip-group mb-3">
       <button type="button" class="chip" [class.active]="paymentMethod === 'Cash'" (click)="selectMethod('Cash')">
         <i class="bi bi-cash"></i> Cash
       </button>
       <button type="button" class="chip" [class.active]="paymentMethod === 'UPI'" (click)="selectMethod('UPI')">
-        <i class="bi bi-phone"></i> UPI
+        <i class="bi bi-phone"></i> UPI (PhonePe)
       </button>
       <button type="button" class="chip" [class.active]="paymentMethod === 'Bank'" (click)="selectMethod('Bank')">
-        <i class="bi bi-bank"></i> Bank
+        <i class="bi bi-bank"></i> Bank Transfer
       </button>
     </div>
 
     <div class="row g-3 mb-3">
       <div class="col-6">
-        <label class="form-label">Date</label>
+        <label class="form-label">Payout Date</label>
         <input class="form-control" type="date" formControlName="paymentDate" />
       </div>
       <div class="col-6">
         <label class="form-label">Status</label>
         <select class="form-select" formControlName="status">
-          <option value="paid">Paid</option>
-          <option value="pending">Pending</option>
+          <option value="paid">Paid (Settled)</option>
+          <option value="pending">Pending (Unpaid)</option>
         </select>
       </div>
     </div>
 
-    <label class="form-label">Notes</label>
-    <input class="form-control mb-3" formControlName="notes" placeholder="Optional note" />
+    <label class="form-label">Remarks</label>
+    <input class="form-control mb-3" formControlName="notes" placeholder="e.g. Bank payout transaction reference" />
 
-    <button class="btn btn-dairy btn-full" type="submit" [disabled]="saving">
+    <button class="btn btn-dairy btn-full py-2" type="submit" [disabled]="saving">
       <span class="spinner" *ngIf="saving" style="width:16px;height:16px;border-width:2px;"></span>
       <i class="bi bi-check2-circle" *ngIf="!saving"></i>
-      {{ saving ? "Saving..." : "Save Payment" }}
+      {{ saving ? "Saving Payout..." : "Disburse Net Payment" }}
     </button>
   </form>
 </section>
 
+<!-- Receipt Modal/Section -->
 <section class="dm-card" *ngIf="showReceipt && lastReceipt" id="receipt-print">
-  <div class="receipt">
-    <div class="receipt-header">
-      <img src="assets/logo/dairy-logo.svg" alt="DairyPro" />
-      <h3 class="mb-1 fw-bold">DairyPro</h3>
-      <p class="support-text mb-0">Payment Receipt</p>
+  <div class="receipt p-4 border rounded">
+    <div class="receipt-header text-center mb-3">
+      <h3 class="mb-1 fw-bold text-teal">SHREE DAIRY</h3>
+      <p class="support-text mb-0">Payout Disbursal Slip</p>
     </div>
-    <div class="receipt-row"><span>Receipt No.</span><strong>{{ lastReceipt.receiptNo }}</strong></div>
-    <div class="receipt-row"><span>Date</span><strong>{{ lastReceipt.date | date: "mediumDate" }}</strong></div>
-    <div class="receipt-row"><span>Customer</span><strong>{{ lastReceipt.customerName }}</strong></div>
-    <div class="receipt-row"><span>Method</span><strong>{{ lastReceipt.method }}</strong></div>
-    <div class="receipt-row"><span>Status</span><strong>{{ lastReceipt.status | titlecase }}</strong></div>
-    <div class="receipt-row" *ngIf="lastReceipt.notes"><span>Notes</span><strong>{{ lastReceipt.notes }}</strong></div>
-    <div class="receipt-total">
-      <span>Amount Paid</span>
+    <div class="receipt-row d-flex justify-content-between py-1 border-bottom"><span>Receipt No.</span><strong>{{ lastReceipt.receiptNo }}</strong></div>
+    <div class="receipt-row d-flex justify-content-between py-1 border-bottom"><span>Date</span><strong>{{ lastReceipt.date | date: "mediumDate" }}</strong></div>
+    <div class="receipt-row d-flex justify-content-between py-1 border-bottom"><span>Farmer</span><strong>{{ lastReceipt.customerName }}</strong></div>
+    <div class="receipt-row d-flex justify-content-between py-1 border-bottom"><span>Method</span><strong>{{ lastReceipt.method }}</strong></div>
+    <div class="receipt-row d-flex justify-content-between py-1 border-bottom"><span>Status</span><strong>{{ lastReceipt.status | titlecase }}</strong></div>
+    <div class="receipt-row d-flex justify-content-between py-1 border-bottom" *ngIf="lastReceipt.notes"><span>Remarks</span><strong>{{ lastReceipt.notes }}</strong></div>
+    <div class="receipt-total d-flex justify-content-between py-3 border-top mt-2 fw-bold text-teal fs-5">
+      <span>Amount Disbursed</span>
       <span>₹{{ lastReceipt.amount | number: "1.2-2" }}</span>
     </div>
-    <p class="receipt-thanks">Thank you for your payment. Fresh milk, trusted service.</p>
+    <p class="receipt-thanks text-center text-muted small mt-2">Thank you! Payout transaction logged successfully.</p>
   </div>
+  
   <div class="d-flex gap-2 mt-3 no-print">
     <button class="btn btn-dairy-outline flex-fill" type="button" (click)="printReceipt()">
-      <i class="bi bi-printer"></i> Print
+      <i class="bi bi-printer"></i> Print Slip
     </button>
     <button class="btn btn-dairy flex-fill" type="button" (click)="shareReceipt()">
-      <i class="bi bi-share"></i> Share
+      <i class="bi bi-share"></i> Share UPI Receipt
     </button>
   </div>
 </section>
 
-<section class="no-print mb-4">
-  <h2 class="section-title">Subscription Plans</h2>
-  <div class="row g-3">
-    <div class="col-6">
-      <div class="dm-card h-100 mb-0">
-        <h5 class="card-title">Basic</h5>
-        <p class="support-text">Small dairy records</p>
-        <div class="stat-value mb-3">$9<span class="support-text fw-normal">/mo</span></div>
-        <button class="btn btn-dairy-outline btn-full btn-sm" type="button" (click)="pay('Basic')">Pay Demo</button>
-      </div>
-    </div>
-    <div class="col-6">
-      <div class="dm-card h-100 mb-0" style="border-color: rgba(74,144,226,0.35);">
-        <h5 class="card-title">Premium</h5>
-        <p class="support-text">Unlimited entries</p>
-        <div class="stat-value mb-3">$19<span class="support-text fw-normal">/mo</span></div>
-        <button class="btn btn-dairy btn-full btn-sm" type="button" (click)="pay('Premium')">Pay Demo</button>
-      </div>
-    </div>
-  </div>
-</section>
-
+<!-- Payment Ledger List -->
 <section class="no-print">
-  <h2 class="section-title">Payment History</h2>
+  <h2 class="section-title">Disbursed Payouts Ledger</h2>
 
   <div class="list-stack" *ngIf="loading">
     <div class="skeleton skeleton-card" *ngFor="let i of [1, 2]"></div>
   </div>
 
   <div class="empty-state" *ngIf="!loading && !payments.length">
-    <img src="assets/illustrations/milk-drop.svg" alt="No payments" />
-    <h4>No payments yet</h4>
-    <p>Record a customer payment to see history and receipts here.</p>
+    <i class="bi bi-cash text-muted" style="font-size: 3rem;"></i>
+    <h4>No payments recorded</h4>
+    <p>Distribute payments to farmers to maintain billing payouts history.</p>
   </div>
 
   <div class="list-stack" *ngIf="!loading && payments.length">
     <article class="list-item" *ngFor="let p of payments">
-      <div class="avatar" [class.green]="p.status === 'paid'">
-        <i class="bi" [ngClass]="p.status === 'paid' ? 'bi-check-lg' : 'bi-clock'"></i>
+      <div class="avatar bg-teal">
+        <i class="bi bi-check-lg text-white"></i>
       </div>
       <div class="list-item-body">
-        <h3 class="list-item-title">{{ p.customerName }}</h3>
-        <p class="list-item-sub">{{ p.paymentDate | date: "mediumDate" }} · {{ p.notes || "—" }}</p>
-        <div class="list-item-meta">
-          <span>₹{{ p.amount | number: "1.0-0" }}</span>
-          <span class="badge-soft" [class.success]="p.status === 'paid'" [class.warning]="p.status !== 'paid'">
-            {{ p.status }}
-          </span>
+        <h3 class="list-item-title">{{ p.customerName }} <small class="text-secondary">(#{{ p.farmerCode }})</small></h3>
+        <p class="list-item-sub">{{ p.paymentDate | date: "mediumDate" }} · Remarks: {{ p.notes || "—" }}</p>
+        <div class="list-item-meta mt-1">
+          <span class="text-teal fw-bold">₹{{ p.amount | number: "1.2-2" }}</span>
+          <span class="badge bg-success text-white" *ngIf="p.status === 'paid'">Settled</span>
+          <span class="badge bg-warning text-dark" *ngIf="p.status !== 'paid'">Pending</span>
         </div>
       </div>
-      <i class="bi bi-chevron-right chevron"></i>
     </article>
   </div>
 </section>

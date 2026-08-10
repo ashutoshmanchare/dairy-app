@@ -1,95 +1,161 @@
 <section class="page-head">
   <div>
     <h1 class="page-title">Milk Collection</h1>
-    <p>Fast entry for daily milk records</p>
+    <p>Professional high-speed entry screen</p>
   </div>
-  <img src="assets/illustrations/milk-can.svg" alt="" width="56" height="64" />
+  <i class="bi bi-droplet-fill text-teal" style="font-size: 2.2rem;"></i>
 </section>
+
+<!-- Network Sync Status Bar -->
+<div class="mb-3">
+  <span class="badge bg-success text-white py-2 px-3 shadow-sm rounded-pill" *ngIf="isOnline">
+    <i class="bi bi-wifi me-1"></i> System Online
+  </span>
+  <span class="badge bg-warning text-dark py-2 px-3 shadow-sm rounded-pill" *ngIf="!isOnline">
+    <i class="bi bi-wifi-off me-1"></i> Offline Mode · {{ queuedCount }} pending sync
+  </span>
+</div>
 
 <div class="success-toast" *ngIf="msg">
   <span class="check"><i class="bi bi-check-lg"></i></span>
   <span>{{ msg }}</span>
 </div>
 
-<section class="dm-card">
-  <h2 class="section-title">New Entry</h2>
-  <form [formGroup]="form" (ngSubmit)="submit()">
-    <label class="form-label" for="customer-search">Customer</label>
-    <input
-      id="customer-search"
-      class="form-control mb-2"
-      type="search"
-      placeholder="Search customer..."
-      [(ngModel)]="customerFilter"
-      [ngModelOptions]="{ standalone: true }"
-    />
-    <select class="form-select mb-3" formControlName="customerId">
-      <option [ngValue]="0">Select Customer</option>
-      <option *ngFor="let c of filteredCustomers" [ngValue]="c.id">{{ c.name }} · {{ c.mobile }}</option>
-    </select>
+<section class="dm-card mb-4">
+  <h2 class="section-title">Record Milk Collection</h2>
+  
+  <form [formGroup]="form" (ngSubmit)="submit()" (keydown.enter)="$event.preventDefault()">
+    
+    <!-- Filter Config Row (Sticky Parameters) -->
+    <div class="row g-2 mb-3 small bg-light p-2 rounded">
+      <div class="col-4">
+        <label class="form-label mb-1">Date</label>
+        <input class="form-control form-control-sm" type="date" formControlName="entryDate" />
+      </div>
+      <div class="col-4">
+        <label class="form-label mb-1">Shift</label>
+        <select class="form-select form-select-sm" formControlName="shift">
+          <option value="morning">Morning (सकाळ)</option>
+          <option value="evening">Evening (संध्याकाळ)</option>
+        </select>
+      </div>
+      <div class="col-4">
+        <label class="form-label mb-1">Category</label>
+        <select class="form-select form-select-sm" formControlName="animalType">
+          <option value="cow">Cow (गाय)</option>
+          <option value="buffalo">Buffalo (म्हैस)</option>
+        </select>
+      </div>
+    </div>
 
-    <label class="form-label">Date</label>
-    <input class="form-control mb-3" type="date" formControlName="entryDate" />
+    <!-- Farmer Selection -->
+    <div class="row g-2 mb-3">
+      <div class="col-4">
+        <label class="form-label">Farmer Code</label>
+        <input
+          #farmerCodeInput
+          class="form-control input-lg text-center fw-bold"
+          type="text"
+          formControlName="farmerCode"
+          placeholder="Code"
+          (input)="onFarmerCodeChange(farmerCodeInput.value)"
+          autocomplete="off"
+        />
+      </div>
+      <div class="col-8">
+        <label class="form-label">Farmer Name Search</label>
+        <select class="form-select input-lg" formControlName="customerId" (change)="onCustomerSelectChange($event)">
+          <option [ngValue]="0">Select Farmer</option>
+          <option *ngFor="let c of customers" [ngValue]="c.id">
+            #{{ c.farmerCode }} · {{ c.name }} ({{ c.village }})
+          </option>
+        </select>
+      </div>
+    </div>
 
-    <div class="row g-3 mb-3">
-      <div class="col-6">
-        <label class="form-label">Quantity</label>
+    <!-- Display selected farmer name preview -->
+    <div class="small fw-semibold text-secondary mb-3 text-center bg-teal-soft py-1 rounded" *ngIf="selectedCustomerName">
+      <i class="bi bi-person-fill text-teal"></i> Selected: {{ selectedCustomerName }}
+    </div>
+
+    <!-- Parameters Row -->
+    <div class="row g-2 mb-3">
+      <div class="col-4">
+        <label class="form-label">Milk Qty (L)</label>
         <div class="field-unit">
           <input class="form-control input-lg" type="number" step="0.01" formControlName="quantity" placeholder="0.00" />
           <span class="unit">L</span>
         </div>
       </div>
-      <div class="col-6">
-        <label class="form-label">Rate</label>
+      <div class="col-4">
+        <label class="form-label">FAT (%)</label>
         <div class="field-unit">
-          <input class="form-control input-lg" type="number" step="0.01" formControlName="rate" placeholder="0" />
-          <span class="unit">₹</span>
+          <input class="form-control input-lg" type="number" step="0.1" formControlName="fat" placeholder="0.0" />
+          <span class="unit">%</span>
+        </div>
+      </div>
+      <div class="col-4">
+        <label class="form-label">SNF (%)</label>
+        <div class="field-unit">
+          <input class="form-control input-lg" type="number" step="0.1" formControlName="snf" placeholder="0.0" />
+          <span class="unit">%</span>
         </div>
       </div>
     </div>
 
-    <div class="summary-panel">
-      <h5>Milk Summary</h5>
-      <div class="formula">
-        {{ (form.value.quantity || 0) | number: "1.0-2" }} L × ₹{{ (form.value.rate || 0) | number: "1.0-2" }}
+    <!-- Rate and Amount preview -->
+    <div class="summary-panel p-3 bg-light rounded border mb-3">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <span class="small text-muted d-block">Rate Calculation</span>
+          <span class="fw-semibold fs-5 text-teal" *ngIf="calculatedRate > 0">₹{{ calculatedRate | number: '1.2-2' }} / L</span>
+          <span class="text-secondary small" *ngIf="calculatedRate === 0">Enter FAT & SNF to fetch rate</span>
+        </div>
+        <div class="text-end">
+          <span class="small text-muted d-block">Gross Amount</span>
+          <span class="fw-bold fs-4 text-teal">₹{{ totalPreview | number: '1.2-2' }}</span>
+        </div>
       </div>
-      <div class="total-label">Total Amount</div>
-      <div class="total-value">₹{{ totalPreview | number: "1.2-2" }}</div>
     </div>
 
-    <button class="btn btn-dairy btn-full mt-3" type="submit" [disabled]="saving">
+    <button class="btn btn-dairy btn-full py-2 fs-6" type="submit" [disabled]="saving">
       <span class="spinner" *ngIf="saving" style="width:16px;height:16px;border-width:2px;"></span>
-      <i class="bi bi-save" *ngIf="!saving"></i>
-      {{ saving ? "Saving..." : "Save Milk Entry" }}
+      <i class="bi bi-save-fill" *ngIf="!saving"></i>
+      {{ saving ? "Saving Entry..." : "Save (Press Enter)" }}
     </button>
   </form>
 </section>
 
+<!-- Collection History -->
 <section>
-  <h2 class="section-title">Recent Collections</h2>
-
+  <h2 class="section-title">Today's Collections</h2>
+  
   <div class="list-stack" *ngIf="loading">
     <div class="skeleton skeleton-card" *ngFor="let i of [1, 2]"></div>
   </div>
 
   <div class="empty-state" *ngIf="!loading && !collections.length">
-    <img src="assets/illustrations/milk-drop.svg" alt="No collection" />
-    <h4>No collection records</h4>
-    <p>No milk collection found for your dairy yet.</p>
+    <i class="bi bi-droplet text-muted" style="font-size: 3rem;"></i>
+    <h4>No collections logged yet</h4>
+    <p>Logged collections for the center will show up here.</p>
   </div>
 
   <div class="list-stack" *ngIf="!loading && collections.length">
     <article class="list-item" *ngFor="let row of collections">
-      <div class="avatar green"><i class="bi bi-droplet-fill"></i></div>
+      <div class="avatar bg-teal"><i class="bi bi-droplet"></i></div>
       <div class="list-item-body">
-        <h3 class="list-item-title">{{ row.customerName }}</h3>
-        <p class="list-item-sub">{{ row.entryDate | date: "mediumDate" }}</p>
-        <div class="list-item-meta">
-          <span>{{ row.quantity }} L × ₹{{ row.rate }}</span>
-          <span>₹{{ row.totalAmount | number: "1.0-0" }}</span>
+        <h3 class="list-item-title">{{ row.customerName }} <small class="text-secondary">(#{{ row.farmerCode }})</small></h3>
+        <p class="list-item-sub">
+          {{ row.entryDate | date: "mediumDate" }} · {{ row.shift | uppercase }}
+          <span class="badge bg-warning text-dark ms-1" *ngIf="row.id < 0"><i class="bi bi-cloud-slash"></i> Local</span>
+        </p>
+        <div class="list-item-meta mt-1">
+          <span class="text-teal">Qty: {{ row.quantity }} L</span>
+          <span class="text-secondary">FAT: {{ row.fat }}% · SNF: {{ row.snf }}%</span>
+          <span>₹{{ row.rate | number:'1.2-2' }} (₹{{ row.totalAmount | number: '1.0-0' }})</span>
         </div>
       </div>
-      <button class="btn btn-sm btn-dairy-danger" type="button" (click)="remove(row.id)" aria-label="Delete entry">
+      <button class="btn btn-sm btn-dairy-danger ms-2" type="button" (click)="remove(row.id)">
         <i class="bi bi-trash"></i>
       </button>
     </article>

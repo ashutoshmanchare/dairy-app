@@ -1,0 +1,114 @@
+<section class="page-head">
+  <div>
+    <h1 class="page-title">Rate Charts</h1>
+    <p>Configure pricing rules for Cow and Buffalo milk</p>
+  </div>
+  <i class="bi bi-grid-3x3-gap-fill text-teal" style="font-size: 2.2rem;"></i>
+</section>
+
+<div class="success-toast" *ngIf="msg">
+  <span class="check"><i class="bi bi-check-lg"></i></span>
+  <span>{{ msg }}</span>
+</div>
+
+<!-- Add New Rate Chart -->
+<section class="dm-card mb-4">
+  <h2 class="section-title">Create Rate Chart</h2>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="mb-3">
+      <label class="form-label">Chart Name</label>
+      <input class="form-control" type="text" formControlName="name" placeholder="e.g. Standard Winter Rate Chart" />
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        <label class="form-label">Animal Type</label>
+        <select class="form-select" formControlName="animalType">
+          <option value="cow">Cow</option>
+          <option value="buffalo">Buffalo</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label">Calculation Type</label>
+        <select class="form-select" formControlName="calculationType">
+          <option value="fat_snf">FAT / SNF Matrix</option>
+          <option value="fat_only">FAT Only Formula</option>
+          <option value="fixed">Fixed Flat Rate</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Conditional Fields depending on Calculation Type -->
+    <div class="mb-3" *ngIf="form.value.calculationType === 'fixed'">
+      <label class="form-label">Fixed Flat Rate (per Liter)</label>
+      <div class="field-unit">
+        <input class="form-control" type="number" step="0.01" formControlName="fixedRate" placeholder="0.00" />
+        <span class="unit">₹</span>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3" *ngIf="form.value.calculationType !== 'fixed'">
+      <div class="col-4">
+        <label class="form-label">Base FAT (%)</label>
+        <input class="form-control" type="number" step="0.1" formControlName="baseFat" />
+      </div>
+      <div class="col-4" *ngIf="form.value.calculationType === 'fat_snf'">
+        <label class="form-label">Base SNF (%)</label>
+        <input class="form-control" type="number" step="0.1" formControlName="baseSnf" />
+      </div>
+      <div class="col-4">
+        <label class="form-label">Base Rate (₹/L)</label>
+        <input class="form-control" type="number" step="0.1" formControlName="baseRate" />
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Effective From</label>
+      <input class="form-control" type="date" formControlName="effectiveFrom" />
+    </div>
+
+    <button class="btn btn-dairy btn-full" type="submit" [disabled]="saving">
+      <span class="spinner" *ngIf="saving" style="width:16px;height:16px;border-width:2px;"></span>
+      <i class="bi bi-save" *ngIf="!saving"></i>
+      {{ saving ? "Creating..." : "Save Rate Chart" }}
+    </button>
+  </form>
+</section>
+
+<!-- Active & Saved Rate Charts List -->
+<section>
+  <h2 class="section-title">Saved Charts</h2>
+  
+  <div class="list-stack" *ngIf="loading">
+    <div class="skeleton skeleton-card" *ngFor="let i of [1, 2]"></div>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !charts.length">
+    <i class="bi bi-grid-3x3-gap-fill text-muted" style="font-size: 3rem;"></i>
+    <h4>No Rate Charts found</h4>
+    <p>Create a pricing rate chart to automatically compute rates based on milk parameters.</p>
+  </div>
+
+  <div class="list-stack" *ngIf="!loading && charts.length">
+    <article class="list-item" *ngFor="let chart of charts" [class.border-teal]="chart.isActive">
+      <div class="avatar" [ngClass]="chart.animalType === 'cow' ? 'bg-teal' : 'bg-primary'">
+        <i class="bi" [ngClass]="chart.animalType === 'cow' ? 'bi-cow' : 'bi-water'"></i>
+      </div>
+      <div class="list-item-body">
+        <h3 class="list-item-title">{{ chart.name }}</h3>
+        <p class="list-item-sub">Effective From: {{ chart.effectiveFrom | date: 'mediumDate' }}</p>
+        <div class="list-item-meta mt-1">
+          <span class="badge bg-secondary text-white">{{ chart.calculationType | uppercase }}</span>
+          <span class="text-secondary" *ngIf="chart.calculationType === 'fixed'">₹{{ chart.fixedRate }}/L</span>
+          <span class="text-secondary" *ngIf="chart.calculationType !== 'fixed'">Base: {{ chart.baseFat }}% FAT · ₹{{ chart.baseRate }}/L</span>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-success text-white py-2" *ngIf="chart.isActive">Active</span>
+        <button class="btn btn-sm btn-dairy" type="button" *ngIf="!chart.isActive" (click)="activate(chart.id)">
+          Activate
+        </button>
+      </div>
+    </article>
+  </div>
+</section>

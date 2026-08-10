@@ -1,0 +1,129 @@
+<section class="page-head">
+  <div>
+    <h1 class="page-title">Cattle Feed Module</h1>
+    <p>Manage feed inventory stock and issues to farmers</p>
+  </div>
+  <i class="bi bi-bag-check-fill text-teal" style="font-size: 2.2rem;"></i>
+</section>
+
+<div class="success-toast" *ngIf="msg">
+  <span class="check"><i class="bi bi-check-lg"></i></span>
+  <span>{{ msg }}</span>
+</div>
+
+<div class="alert alert-danger" *ngIf="errorMsg">
+  <span>{{ errorMsg }}</span>
+</div>
+
+<!-- Sell Feed to Farmer -->
+<section class="dm-card mb-4">
+  <h2 class="section-title">Issue Feed to Farmer</h2>
+  <form [formGroup]="saleForm" (ngSubmit)="submitSale()">
+    <label class="form-label">Search Farmer</label>
+    <input
+      class="form-control mb-2"
+      type="search"
+      placeholder="Type farmer name or code..."
+      [(ngModel)]="customerFilter"
+      [ngModelOptions]="{ standalone: true }"
+    />
+    <select class="form-select mb-3" formControlName="customerId">
+      <option [ngValue]="0">Select Farmer</option>
+      <option *ngFor="let c of filteredCustomers" [ngValue]="c.id">
+        #{{ c.farmerCode }} · {{ c.name }} · {{ c.village }}
+      </option>
+    </select>
+
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        <label class="form-label">Feed Stock Item</label>
+        <select class="form-select" formControlName="feedItemId">
+          <option [ngValue]="0">Select Item</option>
+          <option *ngFor="let item of feedItems" [ngValue]="item.id">
+            {{ item.name }} (Stock: {{ item.stockQuantity }}{{ item.unit }} · ₹{{ item.price }})
+          </option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label">Quantity</label>
+        <input class="form-control" type="number" formControlName="quantity" min="1" />
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Sale Date</label>
+      <input class="form-control" type="date" formControlName="saleDate" />
+    </div>
+
+    <button class="btn btn-dairy btn-full" type="submit" [disabled]="savingSale">
+      <span class="spinner" *ngIf="savingSale" style="width:16px;height:16px;border-width:2px;"></span>
+      <i class="bi bi-cart-check" *ngIf="!savingSale"></i>
+      {{ savingSale ? "Processing..." : "Sell & Link Deduction" }}
+    </button>
+  </form>
+</section>
+
+<!-- Add Feed Inventory Stock -->
+<section class="dm-card mb-4">
+  <h2 class="section-title">Add Feed Inventory Item</h2>
+  <form [formGroup]="itemForm" (ngSubmit)="submitItem()">
+    <div class="mb-3">
+      <label class="form-label">Item Brand/Name</label>
+      <input class="form-control" type="text" formControlName="name" placeholder="e.g. Kapila Pashu Ahar Gold" />
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-4">
+        <label class="form-label">Price (₹)</label>
+        <input class="form-control" type="number" formControlName="price" placeholder="0" />
+      </div>
+      <div class="col-4">
+        <label class="form-label">Stock Qty</label>
+        <input class="form-control" type="number" formControlName="stockQuantity" placeholder="0" />
+      </div>
+      <div class="col-4">
+        <label class="form-label">Stock Unit</label>
+        <select class="form-select" formControlName="unit">
+          <option value="bag">Bags (पोते)</option>
+          <option value="kg">Kilograms (kg)</option>
+          <option value="pkt">Packets</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn btn-dairy btn-full" type="submit" [disabled]="savingItem">
+      <span class="spinner" *ngIf="savingItem" style="width:16px;height:16px;border-width:2px;"></span>
+      <i class="bi bi-plus-lg" *ngIf="!savingItem"></i>
+      {{ savingItem ? "Adding..." : "Add to Stock" }}
+    </button>
+  </form>
+</section>
+
+<!-- Feed Sales History -->
+<section>
+  <h2 class="section-title">Feed Sale Records</h2>
+  
+  <div class="list-stack" *ngIf="loading">
+    <div class="skeleton skeleton-card" *ngFor="let i of [1, 2]"></div>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !sales.length">
+    <i class="bi bi-bag text-muted" style="font-size: 3rem;"></i>
+    <h4>No Feed Sales logged</h4>
+    <p>Sales of cattle feed will be displayed here.</p>
+  </div>
+
+  <div class="list-stack" *ngIf="!loading && sales.length">
+    <article class="list-item" *ngFor="let row of sales">
+      <div class="avatar bg-teal"><i class="bi bi-bag"></i></div>
+      <div class="list-item-body">
+        <h3 class="list-item-title">{{ row.customerName }} <small class="text-secondary">(#{{ row.farmerCode }})</small></h3>
+        <p class="list-item-sub">{{ row.saleDate | date: 'mediumDate' }} · {{ row.feedItemName }} (Qty: {{ row.quantity }})</p>
+        <div class="list-item-meta mt-1">
+          <span class="text-secondary">Rate: ₹{{ row.rate }}</span>
+          <span class="text-teal">Total Amount: ₹{{ row.totalAmount }}</span>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>

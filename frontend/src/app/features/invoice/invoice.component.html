@@ -1,0 +1,154 @@
+<section class="page-head no-print">
+  <div>
+    <h1 class="page-title">Billing Slip (Invoice)</h1>
+    <p>Generate period summaries and printing memos for farmers</p>
+  </div>
+  <i class="bi bi-receipt-cutoff text-teal" style="font-size: 2.2rem;"></i>
+</section>
+
+<!-- Invoice Generator Inputs -->
+<section class="dm-card mb-4 no-print">
+  <h2 class="section-title">Invoice Filters</h2>
+  <form [formGroup]="form" (ngSubmit)="generateInvoice()">
+    <label class="form-label">Search Farmer</label>
+    <input
+      class="form-control mb-2"
+      type="search"
+      placeholder="Type farmer name or code..."
+      [(ngModel)]="customerFilter"
+      [ngModelOptions]="{ standalone: true }"
+    />
+    <select class="form-select mb-3" formControlName="customerId">
+      <option [ngValue]="0">Select Farmer</option>
+      <option *ngFor="let c of filteredCustomers" [ngValue]="c.id">
+        #{{ c.farmerCode }} · {{ c.name }} · {{ c.village }}
+      </option>
+    </select>
+
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        <label class="form-label">Start Date</label>
+        <input class="form-control" type="date" formControlName="startDate" />
+      </div>
+      <div class="col-6">
+        <label class="form-label">End Date</label>
+        <input class="form-control" type="date" formControlName="endDate" />
+      </div>
+    </div>
+
+    <button class="btn btn-dairy btn-full" type="submit" [disabled]="loadingSummary">
+      <span class="spinner" *ngIf="loadingSummary" style="width:16px;height:16px;border-width:2px;"></span>
+      <i class="bi bi-file-earmark-text" *ngIf="!loadingSummary"></i>
+      {{ loadingSummary ? "Generating..." : "Generate Invoice Memo" }}
+    </button>
+  </form>
+</section>
+
+<!-- Printable Invoice Preview -->
+<div class="alert alert-info no-print mb-4" *ngIf="summary">
+  <i class="bi bi-info-circle me-1"></i> Use your browser's Print option or click the **Print Slip** button below.
+</div>
+
+<section class="dm-card receipt shadow-sm" *ngIf="summary && selectedCustomer">
+  <!-- Invoice Header -->
+  <div class="text-center mb-4">
+    <h2 class="fw-bold m-0 text-teal">SHREE DAIRY</h2>
+    <p class="text-muted small m-0">Milk Collection & Distribution Center</p>
+    <p class="text-muted small m-0">Village: Dharashiv, Maharashtra</p>
+    <hr class="my-2" />
+    <h5 class="fw-semibold">BILLING INVOICE SLIP</h5>
+  </div>
+
+  <!-- Meta Info -->
+  <div class="row g-2 mb-3 small">
+    <div class="col-6">
+      <strong>Farmer Name:</strong> {{ selectedCustomer.name }}<br />
+      <strong>Farmer Code:</strong> #{{ selectedCustomer.farmerCode }}<br />
+      <strong>Village:</strong> {{ selectedCustomer.village || 'N/A' }}
+    </div>
+    <div class="col-6 text-end">
+      <strong>Start Date:</strong> {{ form.value.startDate | date: 'mediumDate' }}<br />
+      <strong>End Date:</strong> {{ form.value.endDate | date: 'mediumDate' }}<br />
+      <strong>Date Generated:</strong> {{ newDate | date: 'shortDate' }}
+    </div>
+  </div>
+
+  <!-- Milk Collection Table -->
+  <h6 class="fw-bold border-bottom pb-1 small">COLLECTION ENTRIES</h6>
+  <div class="table-responsive mb-3">
+    <table class="table table-sm table-striped small align-middle">
+      <thead>
+        <tr class="table-teal text-teal">
+          <th>Date</th>
+          <th>Shift</th>
+          <th>Type</th>
+          <th>Qty (L)</th>
+          <th>FAT</th>
+          <th>SNF</th>
+          <th>Rate</th>
+          <th class="text-end">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of milkRows">
+          <td>{{ row.entryDate | date: 'dd-MM' }}</td>
+          <td>{{ row.shift | uppercase }}</td>
+          <td>{{ row.animalType | uppercase }}</td>
+          <td>{{ row.quantity }}</td>
+          <td>{{ row.fat }}%</td>
+          <td>{{ row.snf }}%</td>
+          <td>₹{{ row.rate }}</td>
+          <td class="text-end">₹{{ row.totalAmount | number: '1.2-2' }}</td>
+        </tr>
+        <tr *ngIf="!milkRows.length">
+          <td colspan="8" class="text-center text-muted">No collections recorded in this date range.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Calculation Summary Panel -->
+  <h6 class="fw-bold border-bottom pb-1 small">PAYMENT SUMMARY</h6>
+  <div class="row g-3 small">
+    <div class="col-7">
+      <div class="d-flex justify-content-between py-1">
+        <span>Total Milk Volume:</span>
+        <strong>{{ summary.totalQuantity | number: '1.2-2' }} L</strong>
+      </div>
+      <div class="d-flex justify-content-between py-1">
+        <span>Gross Bill Amount:</span>
+        <span>₹{{ summary.grossAmount | number: '1.2-2' }}</span>
+      </div>
+      <div class="d-flex justify-content-between py-1">
+        <span>Feed & Medicine Deductions:</span>
+        <span class="text-danger">- ₹{{ summary.totalDeductions | number: '1.2-2' }}</span>
+      </div>
+      <div class="d-flex justify-content-between py-1 border-bottom">
+        <span>Advance Cash Recovered:</span>
+        <span class="text-danger">- ₹{{ summary.advanceRecovery | number: '1.2-2' }}</span>
+      </div>
+      <div class="d-flex justify-content-between py-2 fw-bold text-teal fs-6">
+        <span>NET PAYABLE AMOUNT:</span>
+        <span>₹{{ summary.netAmount | number: '1.2-2' }}</span>
+      </div>
+    </div>
+    
+    <div class="col-5 border-start ps-3 d-flex flex-column justify-content-between">
+      <div>
+        <strong>Bank Details:</strong><br />
+        <span class="small text-muted">{{ selectedCustomer.bankDetails || 'No bank details registered' }}</span>
+      </div>
+      <div class="text-center pt-3 border-top mt-2">
+        <div style="height: 40px;"></div>
+        <span class="small text-muted border-top pt-1 px-3 d-inline-block">Authorized Sign</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Print & Share Actions -->
+  <div class="d-flex gap-2 mt-4 no-print">
+    <button class="btn btn-dairy btn-full" type="button" (click)="print()">
+      <i class="bi bi-printer"></i> Print Slip
+    </button>
+  </div>
+</section>

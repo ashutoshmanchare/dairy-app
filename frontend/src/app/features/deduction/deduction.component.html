@@ -1,0 +1,92 @@
+<section class="page-head">
+  <div>
+    <h1 class="page-title">Deduction Manager</h1>
+    <p>Manage farmer deductions like loans, cattle feed, and medicine fees</p>
+  </div>
+  <i class="bi bi-percent text-teal" style="font-size: 2.2rem;"></i>
+</section>
+
+<div class="success-toast" *ngIf="msg">
+  <span class="check"><i class="bi bi-check-lg"></i></span>
+  <span>{{ msg }}</span>
+</div>
+
+<!-- Record Deduction -->
+<section class="dm-card mb-4">
+  <h2 class="section-title">New Deduction Entry</h2>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label class="form-label">Search Farmer</label>
+    <input
+      class="form-control mb-2"
+      type="search"
+      placeholder="Type farmer name or code..."
+      [(ngModel)]="customerFilter"
+      [ngModelOptions]="{ standalone: true }"
+    />
+    <select class="form-select mb-3" formControlName="customerId">
+      <option [ngValue]="0">Select Farmer</option>
+      <option *ngFor="let c of filteredCustomers" [ngValue]="c.id">
+        #{{ c.farmerCode }} · {{ c.name }} · {{ c.village }}
+      </option>
+    </select>
+
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        <label class="form-label">Deduction Type</label>
+        <select class="form-select" formControlName="type">
+          <option value="loan">Loan Recovery</option>
+          <option value="feed">Cattle Feed / Food</option>
+          <option value="medicine">Medicine / Vet Fees</option>
+          <option value="other">Other Charges</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label">Date</label>
+        <input class="form-control" type="date" formControlName="deductionDate" />
+      </div>
+    </div>
+
+    <label class="form-label">Deduction Amount (₹)</label>
+    <input class="form-control mb-3 input-lg" type="number" formControlName="amount" placeholder="0" />
+
+    <label class="form-label">Notes</label>
+    <input class="form-control mb-3" type="text" formControlName="notes" placeholder="e.g. 5kg Calf feed package / Vet visit fee" />
+
+    <button class="btn btn-dairy btn-full" type="submit" [disabled]="saving">
+      <span class="spinner" *ngIf="saving" style="width:16px;height:16px;border-width:2px;"></span>
+      <i class="bi bi-save" *ngIf="!saving"></i>
+      {{ saving ? "Saving..." : "Record Deduction" }}
+    </button>
+  </form>
+</section>
+
+<!-- Deductions History -->
+<section>
+  <h2 class="section-title">Deduction Ledger</h2>
+  
+  <div class="list-stack" *ngIf="loading">
+    <div class="skeleton skeleton-card" *ngFor="let i of [1, 2]"></div>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !deductions.length">
+    <i class="bi bi-file-earmark-diff text-muted" style="font-size: 3rem;"></i>
+    <h4>No Deductions recorded</h4>
+    <p>Charges recorded for farmers will appear here.</p>
+  </div>
+
+  <div class="list-stack" *ngIf="!loading && deductions.length">
+    <article class="list-item" *ngFor="let row of deductions">
+      <div class="avatar bg-teal"><i class="bi bi-dash-circle"></i></div>
+      <div class="list-item-body">
+        <h3 class="list-item-title">{{ row.customerName }} <small class="text-secondary">(#{{ row.farmerCode }})</small></h3>
+        <p class="list-item-sub">{{ row.deductionDate | date: 'mediumDate' }} · {{ row.notes || 'No description' }}</p>
+        <div class="list-item-meta mt-1">
+          <span class="badge bg-secondary text-white">{{ row.type | uppercase }}</span>
+          <span class="text-teal">₹{{ row.amount }}</span>
+          <span class="badge bg-success text-white" *ngIf="row.isRecovered">Deducted (Settled)</span>
+          <span class="badge bg-warning text-dark" *ngIf="!row.isRecovered">Pending Recovery</span>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>

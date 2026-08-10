@@ -1,9 +1,9 @@
 <section class="page-head">
   <div>
-    <h1 class="page-title">Customers</h1>
-    <p>{{ customers.length }} registered customers</p>
+    <h1 class="page-title">Farmers Directory</h1>
+    <p>{{ customers.length }} registered dairy farmers</p>
   </div>
-  <img src="assets/illustrations/milk-bottle.svg" alt="" width="52" height="64" />
+  <i class="bi bi-people-fill text-teal" style="font-size: 2.2rem;"></i>
 </section>
 
 <div class="success-toast" *ngIf="msg">
@@ -16,60 +16,104 @@
 </div>
 
 <div class="empty-state" *ngIf="!loading && !customers.length">
-  <img src="assets/illustrations/cow.svg" alt="No customers" />
-  <h4>No customers yet</h4>
-  <p>Add your first dairy customer to start collecting milk records.</p>
+  <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
+  <h4>No farmers yet</h4>
+  <p>Add your first dairy farmer account to start collecting milk records.</p>
   <button class="btn btn-dairy" type="button" (click)="openAdd()">
-    <i class="bi bi-person-plus"></i> Add Customer
+    <i class="bi bi-person-plus-fill"></i> Add Farmer
   </button>
 </div>
 
 <div class="list-stack" *ngIf="!loading && customers.length">
   <article class="list-item" *ngFor="let c of customers">
-    <div class="avatar">{{ initials(c.name) }}</div>
+    <div class="avatar bg-teal">#{{ c.farmerCode }}</div>
     <div class="list-item-body">
       <h3 class="list-item-title">{{ c.name }}</h3>
-      <p class="list-item-sub">CUS-{{ c.id }} · {{ c.mobile }}</p>
-      <div class="list-item-meta">
-        <span class="meta-muted"><i class="bi bi-geo-alt"></i> {{ c.address }}</span>
+      <p class="list-item-sub">Village: {{ c.village || 'N/A' }} · Mobile: {{ c.mobile }}</p>
+      <div class="list-item-meta mt-1">
+        <span class="badge bg-secondary text-white"><i class="bi bi-cow"></i> Default: {{ c.defaultAnimalType | uppercase }}</span>
+        <span class="badge bg-success text-white" *ngIf="c.status === 'active'">Active</span>
+        <span class="badge bg-danger text-white" *ngIf="c.status === 'inactive'">Inactive</span>
       </div>
     </div>
     <div class="d-flex flex-column gap-2">
-      <button class="btn btn-sm btn-dairy-outline" type="button" (click)="edit(c)" aria-label="Edit customer">
+      <button class="btn btn-sm btn-dairy-outline" type="button" (click)="edit(c)" aria-label="Edit farmer">
         <i class="bi bi-pencil"></i>
       </button>
-      <button class="btn btn-sm btn-dairy-danger" type="button" (click)="remove(c.id)" aria-label="Delete customer">
+      <button class="btn btn-sm btn-dairy-danger" type="button" (click)="remove(c.id)" aria-label="Delete farmer">
         <i class="bi bi-trash"></i>
       </button>
     </div>
   </article>
 </div>
 
-<button class="fab no-print" type="button" (click)="openAdd()" aria-label="Add customer" *ngIf="customers.length || !loading">
+<button class="fab no-print" type="button" (click)="openAdd()" aria-label="Add farmer" *ngIf="customers.length || !loading">
   <i class="bi bi-plus-lg"></i>
 </button>
 
 <div class="modal-sheet no-print" *ngIf="showForm" (click)="closeForm()">
   <div class="modal-sheet-card" (click)="$event.stopPropagation()">
     <div class="d-flex align-items-center justify-content-between mb-3">
-      <h2 class="section-title mb-0">{{ editingId ? "Edit Customer" : "Add Customer" }}</h2>
+      <h2 class="section-title mb-0">{{ editingId ? "Edit Farmer Profile" : "Register Farmer" }}</h2>
       <button class="btn btn-sm btn-light btn-icon" type="button" (click)="closeForm()" aria-label="Close">
         <i class="bi bi-x-lg"></i>
       </button>
     </div>
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <label class="form-label">Customer Name</label>
-      <input class="form-control mb-3" placeholder="Full name" formControlName="name" />
+    <form [formGroup]="form" (ngSubmit)="submit()" class="small">
+      
+      <div class="row g-2 mb-2">
+        <div class="col-4">
+          <label class="form-label">Farmer Code</label>
+          <input class="form-control" placeholder="Auto" formControlName="farmerCode" />
+        </div>
+        <div class="col-8">
+          <label class="form-label">Full Name</label>
+          <input class="form-control" placeholder="Farmer's full name" formControlName="name" />
+        </div>
+      </div>
 
-      <label class="form-label">Mobile</label>
-      <input class="form-control mb-3" placeholder="10-digit mobile" formControlName="mobile" />
+      <div class="row g-2 mb-2">
+        <div class="col-6">
+          <label class="form-label">Mobile</label>
+          <input class="form-control" placeholder="10-digit phone" formControlName="mobile" />
+        </div>
+        <div class="col-6">
+          <label class="form-label">Village</label>
+          <input class="form-control" placeholder="Village name" formControlName="village" />
+        </div>
+      </div>
 
       <label class="form-label">Address</label>
-      <input class="form-control mb-4" placeholder="Village / area" formControlName="address" />
+      <input class="form-control mb-2" placeholder="Farmer's complete residential address" formControlName="address" />
 
-      <button class="btn btn-dairy btn-full" type="submit">
-        <i class="bi bi-check2-circle"></i>
-        {{ editingId ? "Update Customer" : "Save Customer" }}
+      <label class="form-label">Bank Payout Details (Account/IFSC)</label>
+      <textarea class="form-control mb-2" rows="2" placeholder="e.g. SBI A/C: 12345678901, IFSC: SBIN0001234" formControlName="bankDetails"></textarea>
+
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="form-label">Default Category</label>
+          <select class="form-select" formControlName="defaultAnimalType">
+            <option value="cow">Cow (गाय)</option>
+            <option value="buffalo">Buffalo (म्हैस)</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Status</label>
+          <select class="form-select" formControlName="status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Joining Date</label>
+        <input class="form-control" type="date" formControlName="joiningDate" />
+      </div>
+
+      <button class="btn btn-dairy btn-full py-2 fs-6 mt-2" type="submit">
+        <i class="bi bi-check2-circle me-1"></i>
+        {{ editingId ? "Update Profile" : "Register Farmer" }}
       </button>
     </form>
   </div>

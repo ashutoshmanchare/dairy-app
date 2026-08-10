@@ -18,14 +18,21 @@ export class DashboardComponent implements OnInit {
   private readonly authService = inject(AuthService);
 
   recentEntries: MilkCollection[] = [];
-  totalMilk = 0;
   todayMilk = 0;
   todayAmount = 0;
+  pendingPayment = 0;
+  totalFarmers = 0;
   monthlyMilk = 0;
-  totalCustomers = 0;
-  totalPayments = 0;
   paidAmount = 0;
-  pendingAmount = 0;
+  
+  cowMilk = 0;
+  buffaloMilk = 0;
+  morningMilk = 0;
+  eveningMilk = 0;
+
+  collectionCenters = ["Shree Center 1", "Dharashiv Route", "Nilanga Center", "Latur Route"];
+  selectedCenter = "Shree Center 1";
+
   chartBars: Array<{ label: string; value: number }> = [];
   message = "";
   loading = true;
@@ -48,13 +55,15 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.reportService.getSummary().subscribe({
       next: (summary) => {
-        this.totalMilk = summary.totalMilk;
         this.todayMilk = summary.todayMilk;
-        this.monthlyMilk = summary.monthlyMilk;
-        this.totalCustomers = summary.totalCustomers;
-        this.totalPayments = summary.totalPayments;
-        this.paidAmount = summary.paidAmount;
-        this.pendingAmount = summary.pendingAmount;
+        this.todayAmount = summary.todayAmount;
+        this.pendingPayment = summary.pendingPayment;
+        this.totalFarmers = summary.totalFarmers;
+        
+        this.cowMilk = summary.cowMilk || 0;
+        this.buffaloMilk = summary.buffaloMilk || 0;
+        this.morningMilk = summary.morningMilk || 0;
+        this.eveningMilk = summary.eveningMilk || 0;
         this.loading = false;
       },
       error: () => {
@@ -65,13 +74,9 @@ export class DashboardComponent implements OnInit {
     this.milkService.getCollections().subscribe({
       next: (entries) => {
         this.recentEntries = entries.slice(0, 5);
-        const today = new Date().toDateString();
-        this.todayAmount = entries
-          .filter((e) => new Date(e.entryDate).toDateString() === today)
-          .reduce((sum, e) => sum + Number(e.totalAmount || 0), 0);
       },
       error: () => {
-        this.message = "Unable to load recent entries for this session.";
+        this.message = "Unable to load recent entries.";
       }
     });
 
@@ -87,6 +92,10 @@ export class DashboardComponent implements OnInit {
           }));
       }
     });
+  }
+
+  changeCenter(center: string): void {
+    this.selectedCenter = center;
   }
 
   initials(name?: string): string {

@@ -1,72 +1,178 @@
-<section class="dash-header">
-  <div class="dash-header-text">
-    <h1 class="dash-greeting">{{ greeting }}, {{ userName }}</h1>
-    <p class="dash-sub">Manage your dairy collection easily.</p>
+<!-- Top Brand & Header Section -->
+<section class="dash-header-wrap mb-4">
+  <div class="d-flex align-items-center justify-content-between">
+    <div>
+      <span class="dash-greeting-sm">Good Morning, Admin 👋</span>
+      <h1 class="dash-brand-title">Shree Dairy</h1>
+    </div>
+    
+    <!-- Collection Center Select Dropdown -->
+    <div class="dropdown">
+      <button class="btn btn-sm btn-dairy-outline dropdown-toggle" type="button" id="centerDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="bi bi-geo-alt-fill me-1"></i> {{ selectedCenter }}
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="centerDropdown">
+        <li *ngFor="let center of collectionCenters">
+          <button class="dropdown-item py-2" type="button" (click)="changeCenter(center)">{{ center }}</button>
+        </li>
+      </ul>
+    </div>
   </div>
-  <img class="dash-illust" src="assets/illustrations/cow.svg" alt="Dairy cow" />
 </section>
 
+<!-- Summary Cards (Analytics) -->
 <div class="stat-grid" *ngIf="loading">
   <div class="skeleton skeleton-card" *ngFor="let i of [1, 2, 3, 4]"></div>
 </div>
 
-<section class="stat-grid" *ngIf="!loading">
+<section class="stat-grid mb-4" *ngIf="!loading">
   <article class="stat-card">
     <div class="stat-icon"><i class="bi bi-droplet-half"></i></div>
     <div class="stat-label">Today's Milk</div>
     <div class="stat-value">{{ todayMilk | number: "1.0-2" }} L</div>
     <div class="stat-trend"><i class="bi bi-arrow-up-short"></i> Fresh collection</div>
   </article>
+  
   <article class="stat-card">
-    <div class="stat-icon orange"><i class="bi bi-currency-rupee"></i></div>
+    <div class="stat-icon green"><i class="bi bi-currency-rupee"></i></div>
     <div class="stat-label">Today's Amount</div>
     <div class="stat-value">₹{{ todayAmount | number: "1.0-0" }}</div>
-    <div class="stat-trend neutral">From today's entries</div>
+    <div class="stat-trend neutral">Earned today</div>
   </article>
+  
   <article class="stat-card">
-    <div class="stat-icon orange"><i class="bi bi-hourglass-split"></i></div>
-    <div class="stat-label">Pending Amount</div>
-    <div class="stat-value">₹{{ pendingAmount | number: "1.0-0" }}</div>
-    <div class="stat-trend down" *ngIf="pendingAmount > 0"><i class="bi bi-exclamation-circle"></i> Due</div>
-    <div class="stat-trend" *ngIf="pendingAmount <= 0">All clear</div>
+    <div class="stat-icon orange"><i class="bi bi-clock-history"></i></div>
+    <div class="stat-label">Pending Payment</div>
+    <div class="stat-value">₹{{ pendingPayment | number: "1.0-0" }}</div>
+    <div class="stat-trend down" *ngIf="pendingPayment > 0"><i class="bi bi-exclamation-circle-fill"></i> Unpaid Balance</div>
+    <div class="stat-trend" *ngIf="pendingPayment <= 0">All Settled</div>
   </article>
+  
   <article class="stat-card">
-    <div class="stat-icon green"><i class="bi bi-people-fill"></i></div>
-    <div class="stat-label">Total Customers</div>
-    <div class="stat-value">{{ totalCustomers }}</div>
-    <div class="stat-trend neutral">Active accounts</div>
+    <div class="stat-icon slate"><i class="bi bi-people-fill"></i></div>
+    <div class="stat-label">Total Farmers</div>
+    <div class="stat-value">{{ totalFarmers }}</div>
+    <div class="stat-trend neutral">Active Center Accounts</div>
   </article>
 </section>
 
-<section class="mb-2">
-  <h2 class="section-title">Quick Actions</h2>
-  <div class="quick-actions">
-    <a class="quick-action" routerLink="/milk">
-      <div class="quick-action-icon blue"><i class="bi bi-droplet-fill"></i></div>
-      <span>Milk Entry</span>
-    </a>
-    <a class="quick-action" routerLink="/payment">
-      <div class="quick-action-icon green"><i class="bi bi-cash-coin"></i></div>
-      <span>Payment</span>
-    </a>
-    <a class="quick-action" routerLink="/customers">
-      <div class="quick-action-icon cream"><i class="bi bi-people-fill"></i></div>
-      <span>Customers</span>
-    </a>
-    <a class="quick-action" routerLink="/reports">
-      <div class="quick-action-icon slate"><i class="bi bi-receipt"></i></div>
-      <span>Reports</span>
-    </a>
+<!-- 10 Primary Dairy Modules Grid -->
+<section class="mb-4">
+  <h2 class="section-title mb-3"><i class="bi bi-grid-fill text-teal me-1"></i> Control Modules</h2>
+  <div class="row row-cols-3 row-cols-md-5 g-3">
+    <!-- 1. Collection -->
+    <div class="col">
+      <a class="quick-module-card" routerLink="/milk">
+        <div class="module-icon-wrap bg-teal"><i class="bi bi-droplet-fill"></i></div>
+        <span>Collection</span>
+      </a>
+    </div>
+    <!-- 2. Farmers -->
+    <div class="col">
+      <a class="quick-module-card" routerLink="/customers">
+        <div class="module-icon-wrap bg-green"><i class="bi bi-people-fill"></i></div>
+        <span>Farmers</span>
+      </a>
+    </div>
+    <!-- 3. Feed -->
+    <div class="col">
+      <a class="quick-module-card" routerLink="/feed">
+        <div class="module-icon-wrap bg-orange"><i class="bi bi-bag-check-fill"></i></div>
+        <span>Feed / Food</span>
+      </a>
+    </div>
+    <!-- 4. Advance -->
+    <div class="col">
+      <a class="quick-module-card" routerLink="/advance">
+        <div class="module-icon-wrap bg-blue"><i class="bi bi-cash-coin"></i></div>
+        <span>Advance</span>
+      </a>
+    </div>
+    <!-- 5. Deduction -->
+    <div class="col">
+      <a class="quick-module-card" routerLink="/deduction">
+        <div class="module-icon-wrap bg-red"><i class="bi bi-percent"></i></div>
+        <span>Deduction</span>
+      </a>
+    </div>
+    <!-- 6. Invoice -->
+    <div class="col">
+      <a class="quick-module-card" routerLink="/invoice">
+        <div class="module-icon-wrap bg-purple"><i class="bi bi-receipt-cutoff"></i></div>
+        <span>Invoice</span>
+      </a>
+    </div>
+    <!-- 7. Payments -->
+    <div class="col">
+      <a class="quick-module-card" routerLink="/payment">
+        <div class="module-icon-wrap bg-emerald"><i class="bi bi-wallet2"></i></div>
+        <span>Payments</span>
+      </a>
+    </div>
+    <!-- 8. Rate Chart -->
+    <div class="col">
+      <a class="quick-module-card" routerLink="/rate-chart">
+        <div class="module-icon-wrap bg-indigo"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+        <span>Rate Chart</span>
+      </a>
+    </div>
+    <!-- 9. Reports -->
+    <div class="col">
+      <a class="quick-module-card" routerLink="/reports">
+        <div class="module-icon-wrap bg-amber"><i class="bi bi-graph-up-arrow"></i></div>
+        <span>Reports</span>
+      </a>
+    </div>
+    <!-- 10. Settings -->
+    <div class="col">
+      <a class="quick-module-card" routerLink="/more">
+        <div class="module-icon-wrap bg-dark"><i class="bi bi-gear-fill"></i></div>
+        <span>Settings</span>
+      </a>
+    </div>
   </div>
 </section>
 
+<!-- Today's Payout Metrics & Collection Analytics -->
+<section class="dm-card mb-4" *ngIf="!loading">
+  <h2 class="section-title mb-3"><i class="bi bi-activity text-teal me-1"></i> Today's Milk Analysis</h2>
+  
+  <div class="row g-3">
+    <!-- Cow vs Buffalo -->
+    <div class="col-6">
+      <div class="analysis-box">
+        <span class="label">Animal Category</span>
+        <div class="d-flex justify-content-between mt-2 mb-1">
+          <span class="value-text"><i class="bi bi-cow text-teal"></i> Cow: <strong>{{ cowMilk | number: "1.0-1" }}L</strong></span>
+          <span class="value-text"><i class="bi bi-water text-primary"></i> Buf: <strong>{{ buffaloMilk | number: "1.0-1" }}L</strong></span>
+        </div>
+        <div class="progress" style="height: 6px; border-radius: 99px;">
+          <div class="progress-bar bg-teal" role="progressbar" [style.width.%]="(cowMilk + buffaloMilk) > 0 ? (cowMilk / (cowMilk + buffaloMilk)) * 100 : 50"></div>
+          <div class="progress-bar bg-primary" role="progressbar" [style.width.%]="(cowMilk + buffaloMilk) > 0 ? (buffaloMilk / (cowMilk + buffaloMilk)) * 100 : 50"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Morning vs Evening -->
+    <div class="col-6">
+      <div class="analysis-box">
+        <span class="label">Shift Summary</span>
+        <div class="d-flex justify-content-between mt-2 mb-1">
+          <span class="value-text"><i class="bi bi-sun-fill text-warning"></i> AM: <strong>{{ morningMilk | number: "1.0-1" }}L</strong></span>
+          <span class="value-text"><i class="bi bi-moon-stars-fill text-indigo"></i> PM: <strong>{{ eveningMilk | number: "1.0-1" }}L</strong></span>
+        </div>
+        <div class="progress" style="height: 6px; border-radius: 99px;">
+          <div class="progress-bar bg-warning" role="progressbar" [style.width.%]="(morningMilk + eveningMilk) > 0 ? (morningMilk / (morningMilk + eveningMilk)) * 100 : 50"></div>
+          <div class="progress-bar bg-indigo" role="progressbar" [style.width.%]="(morningMilk + eveningMilk) > 0 ? (eveningMilk / (morningMilk + eveningMilk)) * 100 : 50"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Trend Chart -->
 <section class="dm-card mb-4">
-  <div class="d-flex flex-wrap gap-2 mb-3">
-    <span class="badge-soft success"><i class="bi bi-check-circle"></i> Paid: ₹{{ paidAmount | number: "1.0-0" }}</span>
-    <span class="badge-soft warning"><i class="bi bi-clock"></i> Pending: ₹{{ pendingAmount | number: "1.0-0" }}</span>
-    <span class="badge-soft info"><i class="bi bi-droplet"></i> Month: {{ monthlyMilk | number: "1.0-2" }} L</span>
-  </div>
-  <h2 class="section-title"><i class="bi bi-bar-chart-line me-2 text-primary"></i>Milk Collection Trend</h2>
+  <h2 class="section-title mb-3"><i class="bi bi-bar-chart-line-fill text-teal me-1"></i> 7-Day Collection Trend</h2>
   <div class="chart-track" *ngIf="chartBars.length; else noChart">
     <div class="chart-bar-wrap" *ngFor="let bar of chartBars">
       <div class="chart-bar" [style.height.%]="bar.value"></div>
@@ -74,14 +180,15 @@
     </div>
   </div>
   <ng-template #noChart>
-    <p class="support-text mb-0">Trend data will appear after collections are recorded.</p>
+    <p class="support-text mb-0">Daily milk volume trend will appear here.</p>
   </ng-template>
 </section>
 
-<section>
+<!-- Recent Entries -->
+<section class="mb-4">
   <div class="d-flex align-items-center justify-content-between mb-3">
-    <h2 class="section-title mb-0"><i class="bi bi-clock-history me-2"></i>Recent Entries</h2>
-    <a routerLink="/milk" class="support-text fw-semibold">View all <i class="bi bi-chevron-right"></i></a>
+    <h2 class="section-title mb-0"><i class="bi bi-clock-history text-teal me-1"></i> Recent Entries</h2>
+    <a routerLink="/milk" class="support-text fw-semibold text-teal">View all <i class="bi bi-chevron-right"></i></a>
   </div>
 
   <div class="alert alert-warning py-2" *ngIf="message">{{ message }}</div>
@@ -89,18 +196,19 @@
   <div class="empty-state" *ngIf="!recentEntries.length && !message && !loading">
     <img src="assets/illustrations/milk-can.svg" alt="Milk can" />
     <h4>No milk collection yet</h4>
-    <p>Start by adding today's milk entry for your customers.</p>
-    <a routerLink="/milk" class="btn btn-dairy"><i class="bi bi-plus-lg"></i> Add Milk Collection</a>
+    <p>Add the first milk collection record to start logging data.</p>
+    <a routerLink="/milk" class="btn btn-dairy"><i class="bi bi-plus-lg"></i> Add Collection</a>
   </div>
 
   <div class="list-stack" *ngIf="recentEntries.length">
     <article class="list-item" *ngFor="let entry of recentEntries">
       <div class="avatar">{{ initials(entry.customerName) }}</div>
       <div class="list-item-body">
-        <h3 class="list-item-title">{{ entry.customerName }}</h3>
-        <p class="list-item-sub">{{ entry.entryDate | date: "mediumDate" }}</p>
+        <h3 class="list-item-title">{{ entry.customerName }} <small class="text-secondary">(#{{ entry.farmerCode || 'N/A' }})</small></h3>
+        <p class="list-item-sub">{{ entry.entryDate | date: "mediumDate" }} · {{ entry.shift | uppercase }}</p>
         <div class="list-item-meta">
-          <span><i class="bi bi-droplet-half text-primary"></i> {{ entry.quantity }} L</span>
+          <span><i class="bi bi-droplet text-teal"></i> {{ entry.quantity }} L</span>
+          <span class="text-secondary">FAT: {{ entry.fat }}% · SNF: {{ entry.snf }}%</span>
           <span>₹{{ entry.totalAmount | number: "1.0-0" }}</span>
         </div>
       </div>

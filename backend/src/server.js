@@ -8,6 +8,10 @@ import customerRoutes from "./routes/customerRoutes.js";
 import milkRoutes from "./routes/milkRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
+import rateChartRoutes from "./routes/rateChartRoutes.js";
+import advanceRoutes from "./routes/advanceRoutes.js";
+import deductionRoutes from "./routes/deductionRoutes.js";
+import feedRoutes from "./routes/feedRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -25,6 +29,10 @@ app.use("/api/customers", customerRoutes);
 app.use("/api/milk", milkRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/rate-charts", rateChartRoutes);
+app.use("/api/advances", advanceRoutes);
+app.use("/api/deductions", deductionRoutes);
+app.use("/api/feed", feedRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ message: "Route not found" });
