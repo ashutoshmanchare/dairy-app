@@ -18,7 +18,7 @@ export class ApiService {
     if (isLocal) {
       this.baseUrl = `http://${hostname}:5001/api`;
     } else {
-      this.baseUrl = "PROD_API_URL_PLACEHOLDER";
+      this.baseUrl = "PROD_API_URL_PLACEHOLDER/api";
     }
   }
 }
