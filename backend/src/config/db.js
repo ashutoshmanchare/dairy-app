@@ -1,17 +1,22 @@
 import bcrypt from "bcryptjs";
 import mysql from "mysql2/promise";
 
-const poolConfig = (process.env.DATABASE_URL || process.env.MYSQL_URL)
-  ? (process.env.DATABASE_URL || process.env.MYSQL_URL)
-  : {
-      host: process.env.MYSQL_HOST,
-      port: Number(process.env.MYSQL_PORT || 3306),
-      user: process.env.MYSQL_USER,
-      password: process.env.MYSQL_PASSWORD,
-      database: process.env.MYSQL_DATABASE,
-      waitForConnections: true,
-      connectionLimit: 10
-    };
+let poolConfig;
+const databaseUrl = process.env.DATABASE_URL || process.env.MYSQL_URL;
+if (databaseUrl) {
+  const separator = databaseUrl.includes("?") ? "&" : "?";
+  poolConfig = `${databaseUrl}${separator}connectionLimit=3`;
+} else {
+  poolConfig = {
+    host: process.env.MYSQL_HOST,
+    port: Number(process.env.MYSQL_PORT || 3306),
+    user: process.env.MYSQL_USER,
+    password: process.env.MYSQL_PASSWORD,
+    database: process.env.MYSQL_DATABASE,
+    waitForConnections: true,
+    connectionLimit: 3
+  };
+}
 
 export const pool = mysql.createPool(poolConfig);
 
