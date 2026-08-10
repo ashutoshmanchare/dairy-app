@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "dairy-app-7a68c",
     "public": "dist/diary-frontend/browser",
     "ignore": [
       "firebase.json",

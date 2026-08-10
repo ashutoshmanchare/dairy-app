@@ -1,4 +1,5 @@
 import { pool } from "../config/db.js";
+import { sendSMS } from "../utils/smsService.js";
 
 export const getPayments = async (_req, res) => {
   try {
@@ -25,6 +26,31 @@ export const createPayment = async (req, res) => {
       "INSERT INTO payments (customer_id, payment_date, amount, status, notes) VALUES (?, ?, ?, ?, ?)",
       [customerId, paymentDate, amount, status, notes]
     );
+
+    // Retrieve customer details to send SMS
+    try {
+      const [customerRows] = await pool.query(
+        "SELECT name, mobile FROM customers WHERE id = ?",
+        [customerId]
+      );
+      if (customerRows.length > 0) {
+        const customer = customerRows[0];
+        if (customer.mobile) {
+          const formattedDate = new Date(paymentDate).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric"
+          });
+          const message = `Dear ${customer.name}, Payment Recorded: Date: ${formattedDate}, Amount: ₹${amount}, Status: ${status}. Thank you! - DairyPro`;
+          sendSMS(customer.mobile, message).catch(err => 
+            console.error("[SMS Error] Failed to send payment SMS:", err.message)
+          );
+        }
+      }
+    } catch (smsErr) {
+      console.error("[SMS Error] Failed to retrieve customer for payment SMS:", smsErr.message);
+    }
+
     return res.status(201).json({ id: result.insertId, customerId, paymentDate, amount, status, notes });
   } catch {
     return res.status(500).json({ message: "Failed to record payment" });
