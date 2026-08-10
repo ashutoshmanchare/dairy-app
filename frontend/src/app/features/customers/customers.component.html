@@ -59,6 +59,12 @@
         <i class="bi bi-x-lg"></i>
       </button>
     </div>
+    
+    <!-- Backend Error Alert -->
+    <div class="alert alert-danger py-2 mb-3" *ngIf="errorMsg">
+      <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ errorMsg }}
+    </div>
+
     <form [formGroup]="form" (ngSubmit)="submit()" class="small">
       
       <div class="row g-2 mb-2">
@@ -67,15 +73,21 @@
           <input class="form-control" placeholder="Auto" formControlName="farmerCode" />
         </div>
         <div class="col-8">
-          <label class="form-label">Full Name</label>
+          <label class="form-label">Full Name <span class="text-danger">*</span></label>
           <input class="form-control" placeholder="Farmer's full name" formControlName="name" />
+          <div *ngIf="form.get('name')?.touched && form.get('name')?.invalid" class="text-danger small mt-1">
+            Name is required.
+          </div>
         </div>
       </div>
 
       <div class="row g-2 mb-2">
         <div class="col-6">
-          <label class="form-label">Mobile</label>
+          <label class="form-label">Mobile <span class="text-danger">*</span></label>
           <input class="form-control" placeholder="10-digit phone" formControlName="mobile" />
+          <div *ngIf="form.get('mobile')?.touched && form.get('mobile')?.invalid" class="text-danger small mt-1">
+            Valid 10-15 digit mobile is required.
+          </div>
         </div>
         <div class="col-6">
           <label class="form-label">Village</label>

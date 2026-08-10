@@ -17,12 +17,13 @@ export class CustomersComponent implements OnInit {
   customers: Customer[] = [];
   editingId: number | null = null;
   msg = "";
+  errorMsg = "";
   loading = true;
   showForm = false;
 
   form = this.fb.group({
     name: ["", [Validators.required]],
-    mobile: ["", [Validators.required, Validators.minLength(10)]],
+    mobile: ["", [Validators.required, Validators.minLength(10), Validators.maxLength(15)]],
     address: [""],
     farmerCode: [""],
     village: [""],
@@ -51,6 +52,7 @@ export class CustomersComponent implements OnInit {
 
   openAdd(): void {
     this.editingId = null;
+    this.errorMsg = "";
     this.form.reset();
     const today = new Date().toISOString().slice(0, 10);
     this.form.patchValue({
@@ -63,6 +65,7 @@ export class CustomersComponent implements OnInit {
 
   edit(c: Customer): void {
     this.editingId = c.id;
+    this.errorMsg = "";
     this.form.patchValue(c as any);
     this.showForm = true;
   }
@@ -70,6 +73,7 @@ export class CustomersComponent implements OnInit {
   closeForm(): void {
     this.showForm = false;
     this.editingId = null;
+    this.errorMsg = "";
     this.form.reset();
   }
 
@@ -93,7 +97,22 @@ export class CustomersComponent implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
-    const payload = this.form.getRawValue() as Omit<Customer, "id">;
+    this.errorMsg = "";
+    const rawVal = this.form.getRawValue();
+    
+    // Ensure empty strings are sent as null to prevent MySQL date/enum parse errors
+    const payload = {
+      name: rawVal.name,
+      mobile: rawVal.mobile,
+      address: rawVal.address || "",
+      farmerCode: rawVal.farmerCode || null,
+      village: rawVal.village || "",
+      bankDetails: rawVal.bankDetails || "",
+      defaultAnimalType: rawVal.defaultAnimalType || "cow",
+      joiningDate: rawVal.joiningDate || new Date().toISOString().slice(0, 10),
+      status: rawVal.status || "active"
+    } as any;
+
     const request$ = this.editingId
       ? this.service.updateCustomer(this.editingId, payload)
       : this.service.addCustomer(payload);
@@ -106,6 +125,9 @@ export class CustomersComponent implements OnInit {
         this.showForm = false;
         this.load();
         setTimeout(() => (this.msg = ""), 3000);
+      },
+      error: (err) => {
+        this.errorMsg = err.error?.message || "Failed to save farmer profile. Please check inputs.";
       }
     });
   }
