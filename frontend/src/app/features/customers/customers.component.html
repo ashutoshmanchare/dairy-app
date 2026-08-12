@@ -1,7 +1,7 @@
 <section class="page-head">
   <div>
-    <h1 class="page-title">Farmers Directory</h1>
-    <p>{{ customers.length }} registered dairy farmers</p>
+    <h1 class="page-title">{{ translation.t('farmers_list') }}</h1>
+    <p>{{ customers.length }} {{ translation.t('nav_customers') }}</p>
   </div>
   <i class="bi bi-people-fill text-teal" style="font-size: 2.2rem;"></i>
 </section>
@@ -17,10 +17,9 @@
 
 <div class="empty-state" *ngIf="!loading && !customers.length">
   <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
-  <h4>No farmers yet</h4>
-  <p>Add your first dairy farmer account to start collecting milk records.</p>
+  <h4>{{ translation.t('no_farmers') }}</h4>
   <button class="btn btn-dairy" type="button" (click)="openAdd()">
-    <i class="bi bi-person-plus-fill"></i> Add Farmer
+    <i class="bi bi-person-plus-fill"></i> {{ translation.t('register_farmer') }}
   </button>
 </div>
 
@@ -29,11 +28,11 @@
     <div class="avatar bg-teal">#{{ c.farmerCode }}</div>
     <div class="list-item-body">
       <h3 class="list-item-title">{{ c.name }}</h3>
-      <p class="list-item-sub">Village: {{ c.village || 'N/A' }} · Mobile: {{ c.mobile }}</p>
+      <p class="list-item-sub">{{ translation.t('village') }}: {{ c.village || 'N/A' }} · {{ translation.t('mobile_no') }}: {{ c.mobile }}</p>
       <div class="list-item-meta mt-1">
-        <span class="badge bg-secondary text-white"><i class="bi bi-cow"></i> Default: {{ c.defaultAnimalType | uppercase }}</span>
-        <span class="badge bg-success text-white" *ngIf="c.status === 'active'">Active</span>
-        <span class="badge bg-danger text-white" *ngIf="c.status === 'inactive'">Inactive</span>
+        <span class="badge bg-secondary text-white"><i class="bi bi-cow"></i> {{ translation.t('default_cat') }}: {{ c.defaultAnimalType | uppercase }}</span>
+        <span class="badge bg-success text-white" *ngIf="c.status === 'active'">{{ translation.t('active') }}</span>
+        <span class="badge bg-danger text-white" *ngIf="c.status === 'inactive'">{{ translation.t('inactive') }}</span>
       </div>
     </div>
     <div class="d-flex flex-column gap-2">
@@ -54,7 +53,7 @@
 <div class="modal-sheet no-print" *ngIf="showForm" (click)="closeForm()">
   <div class="modal-sheet-card" (click)="$event.stopPropagation()">
     <div class="d-flex align-items-center justify-content-between mb-3">
-      <h2 class="section-title mb-0">{{ editingId ? "Edit Farmer Profile" : "Register Farmer" }}</h2>
+      <h2 class="section-title mb-0">{{ editingId ? translation.t('edit_farmer') : translation.t('register_farmer') }}</h2>
       <button class="btn btn-sm btn-light btn-icon" type="button" (click)="closeForm()" aria-label="Close">
         <i class="bi bi-x-lg"></i>
       </button>
@@ -69,12 +68,12 @@
       
       <div class="row g-2 mb-2">
         <div class="col-4">
-          <label class="form-label">Farmer Code</label>
+          <label class="form-label">{{ translation.t('farmer_code') }}</label>
           <input class="form-control" placeholder="Auto" formControlName="farmerCode" />
         </div>
         <div class="col-8">
-          <label class="form-label">Full Name <span class="text-danger">*</span></label>
-          <input class="form-control" placeholder="Farmer's full name" formControlName="name" />
+          <label class="form-label">{{ translation.t('full_name') }} <span class="text-danger">*</span></label>
+          <input class="form-control" placeholder="Farmer's name" formControlName="name" />
           <div *ngIf="form.get('name')?.touched && form.get('name')?.invalid" class="text-danger small mt-1">
             Name is required.
           </div>
@@ -83,49 +82,49 @@
 
       <div class="row g-2 mb-2">
         <div class="col-6">
-          <label class="form-label">Mobile <span class="text-danger">*</span></label>
-          <input class="form-control" placeholder="10-digit phone" formControlName="mobile" />
+          <label class="form-label">{{ translation.t('mobile_no') }} <span class="text-danger">*</span></label>
+          <input class="form-control" placeholder="10-digit mobile" formControlName="mobile" />
           <div *ngIf="form.get('mobile')?.touched && form.get('mobile')?.invalid" class="text-danger small mt-1">
             Valid 10-15 digit mobile is required.
           </div>
         </div>
         <div class="col-6">
-          <label class="form-label">Village</label>
-          <input class="form-control" placeholder="Village name" formControlName="village" />
+          <label class="form-label">{{ translation.t('village') }}</label>
+          <input class="form-control" placeholder="Village" formControlName="village" />
         </div>
       </div>
 
-      <label class="form-label">Address</label>
-      <input class="form-control mb-2" placeholder="Farmer's complete residential address" formControlName="address" />
+      <label class="form-label">{{ translation.t('address') }}</label>
+      <input class="form-control mb-2" placeholder="Address" formControlName="address" />
 
-      <label class="form-label">Bank Payout Details (Account/IFSC)</label>
-      <textarea class="form-control mb-2" rows="2" placeholder="e.g. SBI A/C: 12345678901, IFSC: SBIN0001234" formControlName="bankDetails"></textarea>
+      <label class="form-label">{{ translation.t('bank_details') }}</label>
+      <textarea class="form-control mb-2" rows="2" placeholder="Bank Name, Account, IFSC" formControlName="bankDetails"></textarea>
 
       <div class="row g-2 mb-3">
         <div class="col-6">
-          <label class="form-label">Default Category</label>
+          <label class="form-label">{{ translation.t('default_cat') }}</label>
           <select class="form-select" formControlName="defaultAnimalType">
             <option value="cow">Cow (गाय)</option>
             <option value="buffalo">Buffalo (म्हैस)</option>
           </select>
         </div>
         <div class="col-6">
-          <label class="form-label">Status</label>
+          <label class="form-label">{{ translation.t('status') }}</label>
           <select class="form-select" formControlName="status">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="active">{{ translation.t('active') }}</option>
+            <option value="inactive">{{ translation.t('inactive') }}</option>
           </select>
         </div>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Joining Date</label>
+        <label class="form-label">{{ translation.t('joining_date') }}</label>
         <input class="form-control" type="date" formControlName="joiningDate" />
       </div>
 
       <button class="btn btn-dairy btn-full py-2 fs-6 mt-2" type="submit">
         <i class="bi bi-check2-circle me-1"></i>
-        {{ editingId ? "Update Profile" : "Register Farmer" }}
+        {{ editingId ? translation.t('save') : translation.t('register_farmer') }}
       </button>
     </form>
   </div>

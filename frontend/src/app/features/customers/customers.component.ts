@@ -4,6 +4,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Customer } from "../../core/models/customer.model";
 import { CustomerService } from "../../core/services/customer.service";
 
+import { TranslationService } from "../../core/services/translation.service";
+
 @Component({
   selector: "app-customers",
   standalone: true,
@@ -13,6 +15,7 @@ import { CustomerService } from "../../core/services/customer.service";
 export class CustomersComponent implements OnInit {
   private readonly service = inject(CustomerService);
   private readonly fb = inject(FormBuilder);
+  readonly translation = inject(TranslationService);
 
   customers: Customer[] = [];
   editingId: number | null = null;
