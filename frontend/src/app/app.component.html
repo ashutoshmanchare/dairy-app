@@ -1,4 +1,4 @@
-<nav class="navbar top-nav" [class.auth-only]="!isLoggedIn">
+<nav class="navbar top-nav" [class.auth-only]="!isLoggedIn" *ngIf="!isLoggedIn">
   <div class="container nav-inner">
     <a routerLink="/dashboard" class="brand">
       <img src="assets/logo/dairy-logo.svg" alt="Dairy logo" />

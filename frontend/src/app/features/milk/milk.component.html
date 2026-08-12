@@ -5,7 +5,12 @@
     <h1>Collections</h1>
     <p>{{ translation.t('brand_title') }} Center</p>
   </div>
-  <div class="header-actions">
+  <div class="header-actions d-flex align-items-center gap-2">
+    <!-- Language Switcher -->
+    <button class="btn btn-sm lang-toggle-btn d-flex align-items-center gap-1 text-white border-white bg-transparent" type="button" (click)="translation.toggleLanguage()">
+      <i class="bi bi-translate text-white"></i> 
+      <span>{{ translation.currentLanguage === 'en' ? 'मराठी' : 'ENG' }}</span>
+    </button>
     <i class="bi bi-volume-up-fill" title="Voice Announcement"></i>
     <i class="bi bi-three-dots-vertical"></i>
   </div>
