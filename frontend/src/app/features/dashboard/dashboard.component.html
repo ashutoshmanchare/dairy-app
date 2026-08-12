@@ -1,252 +1,111 @@
-<!-- Top Brand & Header Section -->
-<section class="dash-header-wrap mb-4">
-  <div class="d-flex align-items-center justify-content-between">
-    <div>
-      <span class="dash-greeting-sm">{{ greeting }}</span>
-      <h1 class="dash-brand-title">{{ translation.t('brand_title') }}</h1>
-    </div>
-    
-    <!-- Collection Center Select Dropdown -->
-    <div class="dropdown">
-      <button class="btn btn-sm btn-dairy-outline dropdown-toggle" type="button" id="centerDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-        <i class="bi bi-geo-alt-fill me-1"></i> {{ selectedCenter }}
-      </button>
-      <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="centerDropdown">
-        <li *ngFor="let center of collectionCenters">
-          <button class="dropdown-item py-2" type="button" (click)="changeCenter(center)">{{ center }}</button>
-        </li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- Summary Cards (Analytics) -->
-<div class="stat-grid" *ngIf="loading">
-  <div class="skeleton skeleton-card" *ngFor="let i of [1, 2, 3, 4]"></div>
+<!-- Top Brand Header Bar -->
+<div class="home-brand-header no-print">
+  <div class="mobiledairy-logo-text">mobile<span>dairy</span></div>
+  <button class="home-settings-link" routerLink="/more">
+    <span>Settings</span>
+    <i class="bi bi-gear-fill"></i>
+  </button>
 </div>
 
-<section class="stat-grid mb-4" *ngIf="!loading">
-  <article class="stat-card">
-    <div class="stat-icon"><i class="bi bi-droplet-half"></i></div>
-    <div class="stat-label">{{ translation.t('dash_today_milk') }}</div>
-    <div class="stat-value">{{ todayMilk | number: "1.0-2" }} L</div>
-    <div class="stat-trend"><i class="bi bi-arrow-up-short"></i> Cow + Buffalo</div>
-  </article>
+<!-- Main Overlapping Card Wrapper -->
+<div class="home-overlapping-card">
+  <!-- Route Details Header -->
+  <div class="home-route-title">Mobile Dairy</div>
+  <div class="home-route-subtitle">[ROUTE 01] Dewale, Mahabaleshwar, Satara, 412806</div>
   
-  <article class="stat-card">
-    <div class="stat-icon green"><i class="bi bi-currency-rupee"></i></div>
-    <div class="stat-label">{{ translation.t('dash_today_amount') }}</div>
-    <div class="stat-value">₹{{ todayAmount | number: "1.0-0" }}</div>
-    <div class="stat-trend neutral">Earned shift-wise</div>
-  </article>
-  
-  <article class="stat-card">
-    <div class="stat-icon orange"><i class="bi bi-clock-history"></i></div>
-    <div class="stat-label">{{ translation.t('dash_pending_pay') }}</div>
-    <div class="stat-value">₹{{ pendingPayment | number: "1.0-0" }}</div>
-    <div class="stat-trend down" *ngIf="pendingPayment > 0"><i class="bi bi-exclamation-circle-fill"></i> Unpaid Balance</div>
-    <div class="stat-trend" *ngIf="pendingPayment <= 0">All Settled</div>
-  </article>
-  
-  <article class="stat-card">
-    <div class="stat-icon slate"><i class="bi bi-people-fill"></i></div>
-    <div class="stat-label">{{ translation.t('dash_total_farmers') }}</div>
-    <div class="stat-value">{{ totalFarmers }}</div>
-    <div class="stat-trend neutral">Active Center Accounts</div>
-  </article>
-</section>
-
-<!-- 10 Primary Dairy Modules Grid -->
-<section class="mb-4">
-  <h2 class="section-title mb-3"><i class="bi bi-grid-fill text-teal me-1"></i> {{ translation.t('dash_control_modules') }}</h2>
-  <div class="row row-cols-3 row-cols-md-5 g-3">
+  <!-- 3-Column Circular Modules Grid -->
+  <div class="amcu-home-grid">
     <!-- 1. Collection -->
-    <div class="col">
-      <a class="quick-module-card" routerLink="/milk">
-        <div class="module-icon-wrap bg-teal"><i class="bi bi-droplet-fill"></i></div>
-        <span>{{ translation.t('mod_collection') }}</span>
-      </a>
-    </div>
-    <!-- 2. Farmers -->
-    <div class="col">
-      <a class="quick-module-card" routerLink="/customers">
-        <div class="module-icon-wrap bg-green"><i class="bi bi-people-fill"></i></div>
-        <span>{{ translation.t('mod_farmers') }}</span>
-      </a>
-    </div>
-    <!-- 3. Feed -->
-    <div class="col">
-      <a class="quick-module-card" routerLink="/feed">
-        <div class="module-icon-wrap bg-orange"><i class="bi bi-bag-check-fill"></i></div>
-        <span>{{ translation.t('mod_feed') }}</span>
-      </a>
-    </div>
+    <a class="amcu-home-module" routerLink="/milk">
+      <div class="amcu-circle-icon"><i class="bi bi-droplet-fill"></i></div>
+      <span class="amcu-circle-label">Collection</span>
+    </a>
+    
+    <!-- 2. Customer -->
+    <a class="amcu-home-module" routerLink="/customers">
+      <div class="amcu-circle-icon"><i class="bi bi-people-fill"></i></div>
+      <span class="amcu-circle-label">Customer</span>
+    </a>
+
+    <!-- 3. Food -->
+    <a class="amcu-home-module" routerLink="/feed">
+      <div class="amcu-circle-icon"><i class="bi bi-bag-check-fill"></i></div>
+      <span class="amcu-circle-label">Food</span>
+    </a>
+
     <!-- 4. Advance -->
-    <div class="col">
-      <a class="quick-module-card" routerLink="/advance">
-        <div class="module-icon-wrap bg-blue"><i class="bi bi-cash-coin"></i></div>
-        <span>{{ translation.t('mod_advance') }}</span>
-      </a>
-    </div>
+    <a class="amcu-home-module" routerLink="/advance">
+      <div class="amcu-circle-icon"><i class="bi bi-cash-coin"></i></div>
+      <span class="amcu-circle-label">Advance</span>
+    </a>
+
     <!-- 5. Deduction -->
-    <div class="col">
-      <a class="quick-module-card" routerLink="/deduction">
-        <div class="module-icon-wrap bg-red"><i class="bi bi-percent"></i></div>
-        <span>{{ translation.t('mod_deduction') }}</span>
-      </a>
-    </div>
+    <a class="amcu-home-module" routerLink="/deduction">
+      <div class="amcu-circle-icon"><i class="bi bi-percent"></i></div>
+      <span class="amcu-circle-label">Deduction</span>
+    </a>
+
     <!-- 6. Invoice -->
-    <div class="col">
-      <a class="quick-module-card" routerLink="/invoice">
-        <div class="module-icon-wrap bg-purple"><i class="bi bi-receipt-cutoff"></i></div>
-        <span>{{ translation.t('mod_invoice') }}</span>
-      </a>
-    </div>
-    <!-- 7. Payments -->
-    <div class="col">
-      <a class="quick-module-card" routerLink="/payment">
-        <div class="module-icon-wrap bg-emerald"><i class="bi bi-wallet2"></i></div>
-        <span>{{ translation.t('mod_payments') }}</span>
-      </a>
-    </div>
-    <!-- 8. Rate Chart -->
-    <div class="col">
-      <a class="quick-module-card" routerLink="/rate-chart">
-        <div class="module-icon-wrap bg-indigo"><i class="bi bi-grid-3x3-gap-fill"></i></div>
-        <span>{{ translation.t('mod_rate_chart') }}</span>
-      </a>
-    </div>
-    <!-- 9. Reports -->
-    <div class="col">
-      <a class="quick-module-card" routerLink="/reports">
-        <div class="module-icon-wrap bg-amber"><i class="bi bi-graph-up-arrow"></i></div>
-        <span>{{ translation.t('mod_reports') }}</span>
-      </a>
-    </div>
-    <!-- 10. Settings -->
-    <div class="col">
-      <a class="quick-module-card" routerLink="/more">
-        <div class="module-icon-wrap bg-dark"><i class="bi bi-gear-fill"></i></div>
-        <span>{{ translation.t('mod_settings') }}</span>
-      </a>
-    </div>
+    <a class="amcu-home-module" routerLink="/invoice">
+      <div class="amcu-circle-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+      <span class="amcu-circle-label">Invoice</span>
+    </a>
+
+    <!-- 7. Milk Sale -->
+    <a class="amcu-home-module" routerLink="/milk-sale">
+      <div class="amcu-circle-icon"><i class="bi bi-cup-straw"></i></div>
+      <span class="amcu-circle-label">Milk Sale</span>
+    </a>
+
+    <!-- 8. Dairy Expense -->
+    <a class="amcu-home-module" routerLink="/expense">
+      <div class="amcu-circle-icon"><i class="bi bi-calculator-fill"></i></div>
+      <span class="amcu-circle-label">Dairy Expense</span>
+    </a>
+
+    <!-- 9. Rate Chart -->
+    <a class="amcu-home-module" routerLink="/rate-chart">
+      <div class="amcu-circle-icon"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+      <span class="amcu-circle-label">Rate Chart</span>
+    </a>
+
+    <!-- 10. Reports -->
+    <a class="amcu-home-module" routerLink="/reports">
+      <div class="amcu-circle-icon"><i class="bi bi-graph-up-arrow"></i></div>
+      <span class="amcu-circle-label">Reports</span>
+    </a>
+
+    <!-- 11. Notice Board -->
+    <a class="amcu-home-module" routerLink="/notice">
+      <div class="amcu-circle-icon"><i class="bi bi-clipboard-check-fill"></i></div>
+      <span class="amcu-circle-label">Notice Board</span>
+    </a>
+
+    <!-- 12. Annual Bonus -->
+    <a class="amcu-home-module" routerLink="/bonus">
+      <div class="amcu-circle-icon"><i class="bi bi-gift-fill"></i></div>
+      <span class="amcu-circle-label">Annual Bonus</span>
+    </a>
+
+    <!-- 13. Milk Dispatch -->
+    <a class="amcu-home-module" routerLink="/dispatch">
+      <div class="amcu-circle-icon"><i class="bi bi-truck"></i></div>
+      <span class="amcu-circle-label">Milk Dispatch</span>
+    </a>
+
+    <!-- 14. Milk Received -->
+    <a class="amcu-home-module" routerLink="/receive">
+      <div class="amcu-circle-icon"><i class="bi bi-truck-flatbed"></i></div>
+      <span class="amcu-circle-label">Milk Received</span>
+    </a>
   </div>
-</section>
+</div>
 
-<!-- Today's Payout Metrics & Shift Analysis -->
-<section class="mb-4" *ngIf="!loading">
-  <h2 class="section-title mb-3"><i class="bi bi-clock-history text-teal me-1"></i> {{ translation.t('shift_analysis') }}</h2>
-  
-  <div class="shift-compare-container mb-3">
-    <!-- Morning Shift Card -->
-    <article class="shift-card morning">
-      <div class="shift-header">
-        <div class="shift-icon"><i class="bi bi-sun-fill"></i></div>
-        <h3 class="shift-title">{{ translation.t('shift_morning') }}</h3>
-      </div>
-      <div class="shift-stat-row">
-        <span class="label">{{ translation.t('total_liters') }}</span>
-        <span class="value">{{ morningMilk | number: '1.1-2' }} L</span>
-      </div>
-      <div class="shift-stat-row">
-        <span class="label">{{ translation.t('avg_fat') }}</span>
-        <span class="value">{{ morningAvgFat | number: '1.1-2' }}%</span>
-      </div>
-      <div class="shift-stat-row">
-        <span class="label">{{ translation.t('avg_snf') }}</span>
-        <span class="value">{{ morningAvgSnf | number: '1.1-2' }}%</span>
-      </div>
-      <div class="shift-card-total">
-        <span class="total-label">{{ translation.t('total_amt') }}</span>
-        <span class="total-value">₹{{ morningAmt | number: '1.0-0' }}</span>
-      </div>
-    </article>
-
-    <!-- Evening Shift Card -->
-    <article class="shift-card evening">
-      <div class="shift-header">
-        <div class="shift-icon"><i class="bi bi-moon-stars-fill"></i></div>
-        <h3 class="shift-title">{{ translation.t('shift_evening') }}</h3>
-      </div>
-      <div class="shift-stat-row">
-        <span class="label">{{ translation.t('total_liters') }}</span>
-        <span class="value">{{ eveningMilk | number: '1.1-2' }} L</span>
-      </div>
-      <div class="shift-stat-row">
-        <span class="label">{{ translation.t('avg_fat') }}</span>
-        <span class="value">{{ eveningAvgFat | number: '1.1-2' }}%</span>
-      </div>
-      <div class="shift-stat-row">
-        <span class="label">{{ translation.t('avg_snf') }}</span>
-        <span class="value">{{ eveningAvgSnf | number: '1.1-2' }}%</span>
-      </div>
-      <div class="shift-card-total">
-        <span class="total-label">{{ translation.t('total_amt') }}</span>
-        <span class="total-value">₹{{ eveningAmt | number: '1.0-0' }}</span>
-      </div>
-    </article>
-  </div>
-
-  <!-- Cow vs Buffalo Summary Box -->
-  <div class="analysis-box">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <span class="label mb-0">{{ translation.t('coll_animal') }} Overview</span>
-      <span class="small text-secondary">{{ todayMilk | number: "1.1-2" }}L Total</span>
-    </div>
-    <div class="d-flex justify-content-between mt-2 mb-1">
-      <span class="value-text"><i class="bi bi-cow text-teal"></i> {{ translation.t('shift_cow') }}: <strong>{{ cowMilk | number: "1.0-1" }}L</strong></span>
-      <span class="value-text"><i class="bi bi-water text-primary"></i> {{ translation.t('shift_buf') }}: <strong>{{ buffaloMilk | number: "1.0-1" }}L</strong></span>
-    </div>
-    <div class="progress shadow-sm" style="height: 8px; border-radius: 99px; background: #e2e8f0;">
-      <div class="progress-bar bg-teal" role="progressbar" [style.width.%]="(cowMilk + buffaloMilk) > 0 ? (cowMilk / (cowMilk + buffaloMilk)) * 100 : 50" title="Cow Milk"></div>
-      <div class="progress-bar bg-primary" role="progressbar" [style.width.%]="(cowMilk + buffaloMilk) > 0 ? (buffaloMilk / (cowMilk + buffaloMilk)) * 100 : 50" title="Buffalo Milk"></div>
-    </div>
-  </div>
-</section>
-
-<!-- Trend Chart -->
-<section class="dm-card mb-4">
-  <h2 class="section-title mb-3"><i class="bi bi-bar-chart-line-fill text-teal me-1"></i> 7-Day Collection Trend</h2>
-  <div class="chart-track" *ngIf="chartBars.length; else noChart">
-    <div class="chart-bar-wrap" *ngFor="let bar of chartBars">
-      <div class="chart-bar" [style.height.%]="bar.value"></div>
-      <small class="chart-label">{{ bar.label }}</small>
-    </div>
-  </div>
-  <ng-template #noChart>
-    <p class="support-text mb-0">Daily milk volume trend will appear here.</p>
-  </ng-template>
-</section>
-
-<!-- Recent Entries -->
-<section class="mb-4">
-  <div class="d-flex align-items-center justify-content-between mb-3">
-    <h2 class="section-title mb-0"><i class="bi bi-clock-history text-teal me-1"></i> Recent Entries</h2>
-    <a routerLink="/milk" class="support-text fw-semibold text-teal">View all <i class="bi bi-chevron-right"></i></a>
-  </div>
-
-  <div class="alert alert-warning py-2" *ngIf="message">{{ message }}</div>
-
-  <div class="empty-state" *ngIf="!recentEntries.length && !message && !loading">
-    <img src="assets/illustrations/milk-can.svg" alt="Milk can" />
-    <h4>No milk collection yet</h4>
-    <p>Add the first milk collection record to start logging data.</p>
-    <a routerLink="/milk" class="btn btn-dairy"><i class="bi bi-plus-lg"></i> Add Collection</a>
-  </div>
-
-  <div class="list-stack" *ngIf="recentEntries.length">
-    <article class="list-item" *ngFor="let entry of recentEntries">
-      <div class="avatar">{{ initials(entry.customerName) }}</div>
-      <div class="list-item-body">
-        <h3 class="list-item-title">{{ entry.customerName }} <small class="text-secondary">(#{{ entry.farmerCode || 'N/A' }})</small></h3>
-        <p class="list-item-sub">{{ entry.entryDate | date: "mediumDate" }} · {{ entry.shift | uppercase }}</p>
-        <div class="list-item-meta">
-          <span><i class="bi bi-droplet text-teal"></i> {{ entry.quantity }} L</span>
-          <span class="text-secondary">FAT: {{ entry.fat }}% · SNF: {{ entry.snf }}%</span>
-          <span>₹{{ entry.totalAmount | number: "1.0-0" }}</span>
-        </div>
-      </div>
-      <i class="bi bi-chevron-right chevron"></i>
-    </article>
-  </div>
-</section>
+<!-- Bottom Status Refresh Footer -->
+<div class="home-footer-status no-print">
+  <span>Last Refresh: {{ lastRefreshTime }}</span>
+  <button type="button" class="refresh-btn" (click)="refreshData()">
+    <span>Refresh</span>
+    <i class="bi bi-arrow-clockwise" [class.fa-spin]="loading"></i>
+  </button>
+</div>

@@ -39,6 +39,8 @@ export class DashboardComponent implements OnInit {
   eveningAvgFat = 0;
   eveningAvgSnf = 0;
   eveningAmt = 0;
+  
+  lastRefreshTime = "";
 
   collectionCenters = ["Shree Center 1", "Dharashiv Route", "Nilanga Center", "Latur Route"];
   selectedCenter = "Shree Center 1";
@@ -71,7 +73,17 @@ export class DashboardComponent implements OnInit {
     return `${greetText}, ${this.userName} 👋`;
   }
 
+  formatRefreshTime(): string {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true });
+    const day = now.getDate();
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = monthNames[now.getMonth()];
+    return `${timeStr} ${day} ${month}`;
+  }
+
   ngOnInit(): void {
+    this.lastRefreshTime = this.formatRefreshTime();
     this.reportService.getSummary().subscribe({
       next: (summary) => {
         this.todayMilk = summary.todayMilk;
@@ -153,5 +165,28 @@ export class DashboardComponent implements OnInit {
     }
     const parts = name.trim().split(/\s+/);
     return ((parts[0]?.[0] || "") + (parts[1]?.[0] || "")).toUpperCase() || name.charAt(0).toUpperCase();
+  }
+
+  refreshData(): void {
+    this.loading = true;
+    this.reportService.getSummary().subscribe({
+      next: (summary) => {
+        this.todayMilk = summary.todayMilk;
+        this.todayAmount = summary.todayAmount;
+        this.pendingPayment = summary.pendingPayment;
+        this.totalFarmers = summary.totalFarmers;
+        
+        this.cowMilk = summary.cowMilk || 0;
+        this.buffaloMilk = summary.buffaloMilk || 0;
+        this.morningMilk = summary.morningMilk || 0;
+        this.eveningMilk = summary.eveningMilk || 0;
+        this.lastRefreshTime = this.formatRefreshTime();
+        this.loading = false;
+      },
+      error: () => {
+        this.lastRefreshTime = this.formatRefreshTime();
+        this.loading = false;
+      }
+    });
   }
 }
