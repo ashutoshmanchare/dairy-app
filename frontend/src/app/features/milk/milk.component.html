@@ -1,30 +1,39 @@
 <!-- Teal Header Bar -->
 <div class="amcu-header no-print">
-  <button class="back-btn" routerLink="/dashboard"><i class="bi bi-arrow-left"></i></button>
+  <button class="back-btn" (click)="goBack()">
+    <i class="bi bi-arrow-left"></i>
+  </button>
+  
   <div class="title-wrap">
-    <h1>Collections</h1>
+    <h1 *ngIf="!showAddForm">Collections</h1>
+    <h1 *ngIf="showAddForm">Add Collection</h1>
     <p>{{ translation.t('brand_title') }} Center</p>
   </div>
+  
   <div class="header-actions d-flex align-items-center gap-2">
-    <!-- Language Switcher -->
-    <button class="btn btn-sm lang-toggle-btn d-flex align-items-center gap-1 text-white border-white bg-transparent" type="button" (click)="translation.toggleLanguage()">
-      <i class="bi bi-translate text-white"></i> 
-      <span>{{ translation.currentLanguage === 'en' ? 'मराठी' : 'ENG' }}</span>
+    <!-- Quick Add Customer / Farmer Trigger Button -->
+    <button class="btn btn-link p-0 text-white" type="button" (click)="showQuickAddCustomer = true" title="Quick Add Farmer">
+      <i class="bi bi-plus" style="font-size: 1.8rem; line-height: 1;"></i>
     </button>
-    <i class="bi bi-volume-up-fill" title="Voice Announcement"></i>
     <i class="bi bi-three-dots-vertical"></i>
   </div>
 </div>
 
-<!-- Sync & Status Info Bar -->
+<!-- Sync & Status Info Bar / Shift starts -->
 <div class="amcu-banner no-print">
-  <span *ngIf="isOnline"><i class="bi bi-wifi text-success me-1"></i> System Online</span>
-  <span *ngIf="!isOnline"><i class="bi bi-wifi-off text-warning me-1"></i> Offline Mode ({{ queuedCount }} pending)</span>
+  <span *ngIf="isOnline"><i class="bi bi-wifi text-success me-1"></i> Online</span>
+  <span *ngIf="!isOnline"><i class="bi bi-wifi-off text-warning me-1"></i> Offline Mode</span>
   <span class="mx-2">·</span>
-  <span>{{ form.get('shift')?.value === 'morning' ? 'Morning Shift Starts at 06:00 AM' : 'Evening Shift Starts at 04:00 PM' }}</span>
+  <!-- Dynamically show shift starts based on active filter or form -->
+  <span *ngIf="!showAddForm">
+    {{ listShiftFilter === 'morning' ? 'Morning Shift Starts at 06:00 AM' : 'Evening Shift Starts at 04:00 PM' }}
+  </span>
+  <span *ngIf="showAddForm">
+    {{ form.get('shift')?.value === 'morning' ? 'Morning Shift Starts at 06:00 AM' : 'Evening Shift Starts at 04:00 PM' }}
+  </span>
 </div>
 
-<!-- Success Toast -->
+<!-- Success Toast Messages -->
 <div class="success-toast" *ngIf="msg">
   <span class="check"><i class="bi bi-check-lg"></i></span>
   <span>{{ msg }}</span>
@@ -33,232 +42,314 @@
   </button>
 </div>
 
-<section class="mb-4">
-  <form [formGroup]="form" (ngSubmit)="submit()" (keydown.enter)="$event.preventDefault()">
+<!-- Quick Add Customer Modal Overlay -->
+<div class="quick-farmer-overlay" *ngIf="showQuickAddCustomer" (click)="$event.stopPropagation()">
+  <div class="quick-farmer-card">
+    <div class="quick-farmer-header">
+      <h3>Quick Add Farmer</h3>
+      <button class="close-btn" (click)="showQuickAddCustomer = false">&times;</button>
+    </div>
+    <div class="quick-farmer-body">
+      <form [formGroup]="quickCustomerForm" (ngSubmit)="saveQuickCustomer()">
+        <div class="mb-3">
+          <label class="form-label small fw-bold">Farmer Code (कोड)</label>
+          <input class="form-control" type="text" formControlName="farmerCode" placeholder="Enter unique code" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-bold">Full Name (नाव)</label>
+          <input class="form-control" type="text" formControlName="name" placeholder="Enter farmer name" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-bold">Mobile Number (मोबाईल)</label>
+          <input class="form-control" type="text" formControlName="mobile" placeholder="10-digit mobile" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-bold">Default Animal Type (प्राणी)</label>
+          <select class="form-select" formControlName="defaultAnimalType">
+            <option value="cow">Cow (गाय)</option>
+            <option value="buffalo">Buffalo (म्हैस)</option>
+          </select>
+        </div>
+        <button class="btn btn-dairy w-100 py-2 fw-bold" type="submit">SAVE FARMER</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN VIEW SWITCH -->
+
+<!-- SCREEN 1: HISTORY LIST LOG VIEW (Default) -->
+<ng-container *ngIf="!showAddForm">
+  
+  <!-- Interactive Date Picker and Morn/Even/Cow/Buf Filter Toggles -->
+  <div class="list-filter-row no-print">
+    <div class="date-picker-wrap">
+      <i class="bi bi-calendar3 text-secondary"></i>
+      <!-- Bind collection form entryDate value for unified date filtering -->
+      <input type="date" [formControl]="$any(form.get('entryDate'))" />
+    </div>
     
-    <!-- Filter bar with Shift/Animal toggle buttons -->
-    <div class="amcu-filter-bar no-print">
-      <div class="d-flex align-items-center gap-1">
-        <i class="bi bi-calendar3 text-secondary"></i>
-        <input class="amcu-date-input" type="date" formControlName="entryDate" />
-      </div>
-      <div class="amcu-toggles">
-        <!-- Morn/Even Toggle Group -->
-        <div class="amcu-toggle-group">
-          <button type="button" class="amcu-toggle-btn" [class.active]="form.get('shift')?.value === 'morning'" (click)="form.patchValue({ shift: 'morning' })">
-            <span>Morn</span>
-          </button>
-          <button type="button" class="amcu-toggle-btn" [class.active]="form.get('shift')?.value === 'evening'" (click)="form.patchValue({ shift: 'evening' })">
-            <span>Even</span>
-          </button>
+    <div class="list-filter-toggles">
+      <!-- Morn/Even Shift Filters -->
+      <button type="button" class="list-filter-btn" [class.active]="listShiftFilter === 'morning'" (click)="listShiftFilter = 'morning'">
+        <span class="emoji">☀️</span>
+        <span class="label">Morn</span>
+      </button>
+      <button type="button" class="list-filter-btn" [class.active]="listShiftFilter === 'evening'" (click)="listShiftFilter = 'evening'">
+        <span class="emoji">🌙</span>
+        <span class="label">Even</span>
+      </button>
+      
+      <!-- Cow/Buf Animal Filters -->
+      <button type="button" class="list-filter-btn" [class.active]="listAnimalFilter === 'cow'" (click)="listAnimalFilter = 'cow'">
+        <span class="emoji">🐄</span>
+        <span class="label">Cow</span>
+      </button>
+      <button type="button" class="list-filter-btn" [class.active]="listAnimalFilter === 'buffalo'" (click)="listAnimalFilter = 'buffalo'">
+        <span class="emoji">🐃</span>
+        <span class="label">Buffalo</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Collections History List logs -->
+  <div class="amcu-list-container px-3">
+    <div class="list-stack" *ngIf="loading">
+      <div class="skeleton skeleton-card" *ngFor="let i of [1, 2, 3]"></div>
+    </div>
+
+    <div class="empty-state py-5" *ngIf="!loading && !filteredCollections.length">
+      <i class="bi bi-droplet-half text-muted" style="font-size: 3rem;"></i>
+      <p class="small text-muted mt-2">No collections logged for selected filters</p>
+    </div>
+
+    <!-- Replicated logs item list cards -->
+    <div *ngIf="!loading && filteredCollections.length">
+      <div class="amcu-list-item" *ngFor="let row of filteredCollections; let idx = index">
+        <!-- Stacked Index details (Loop sequence, shift icon, animal icon) -->
+        <div class="idx-stack-col">
+          <span class="idx-num">{{ idx + 1 }}</span>
+          <span class="idx-icon">{{ row.shift === 'morning' ? '☀️' : '🌙' }}</span>
         </div>
         
-        <!-- Cow/Buf Toggle Group -->
-        <div class="amcu-toggle-group">
-          <button type="button" class="amcu-toggle-btn" [class.active]="form.get('animalType')?.value === 'cow'" (click)="form.patchValue({ animalType: 'cow' })">
-            <span>Cow</span>
-          </button>
-          <button type="button" class="amcu-toggle-btn" [class.active]="form.get('animalType')?.value === 'buffalo'" (click)="form.patchValue({ animalType: 'buffalo' })">
-            <span>Buf</span>
-          </button>
+        <div class="body-col">
+          <p class="name">{{ row.customerName }} <small class="text-secondary">(#{{ row.farmerCode }})</small></p>
+          <p class="details">
+            <!-- RenderCow/Buf indicator text next to parameters -->
+            <span>{{ row.animalType === 'cow' ? '🐄 Cow' : '🐃 Buf' }}</span>
+            <span class="mx-1">|</span>
+            <span>FAT: {{ row.fat | number:'1.1-1' }} | SNF: {{ row.snf | number:'1.1-1' }}</span>
+          </p>
+        </div>
+        
+        <!-- Right side details: amount in green, formula in pink -->
+        <div class="amt-col text-end">
+          <p class="amount m-0 text-success fw-bold">₹{{ row.totalAmount | number: '1.2-2' }}</p>
+          <p class="formula m-0 text-danger small font-monospace">{{ row.rate | number: '1.2-2' }} x {{ row.quantity | number: '1.2-2' }}l</p>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Farmer Selection & Details Display -->
-    <div class="amcu-farmer-card">
-      <div class="code-col">
-        <input
-          #farmerCodeInput
-          class="code-input text-center fw-bold"
-          [class.active-input-field]="activeField === 'farmerCode'"
-          (focus)="setActiveField('farmerCode')"
-          type="text"
-          formControlName="farmerCode"
-          placeholder="Code"
-          (input)="onFarmerCodeChange(farmerCodeInput.value)"
-          autocomplete="off"
-        />
+  <!-- Replicated 5-Column Summary Table Card -->
+  <div class="px-3" *ngIf="!loading && filteredCollections.length">
+    <div class="amcu-table-footer font-monospace">
+      <div class="amcu-table-grid-header">
+        <span>FAT</span>
+        <span>SNF</span>
+        <span>Rate</span>
+        <span>Liter</span>
+        <span>Amount</span>
       </div>
-      <div class="info-col">
-        <p class="name" *ngIf="selectedCustomerName">{{ selectedCustomerName }}</p>
-        <p class="name text-muted" *ngIf="!selectedCustomerName">Enter Farmer Code</p>
-        <p class="mobile" *ngIf="selectedCustomerMobile">{{ getMaskedMobile(selectedCustomerMobile) }}</p>
+      <div class="amcu-table-grid-values">
+        <span>{{ avgFat | number: '1.2-2' }}</span>
+        <span>{{ avgSnf | number: '1.2-2' }}</span>
+        <span>{{ avgRate | number: '1.2-2' }}</span>
+        <span>{{ totalLiters | number: '1.2-2' }}</span>
+        <span class="highlight-val">₹{{ totalAmount | number: '1.0-0' }}</span>
       </div>
-      <div class="search-col">
-        <!-- Native select search fallback inside search-col for safety -->
-        <div class="dropdown d-inline">
-          <button class="btn btn-link p-0 text-secondary" type="button" id="farmerSearchDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-search"></i>
-          </button>
-          <div class="dropdown-menu dropdown-menu-end p-2 shadow-lg" aria-labelledby="farmerSearchDropdown" style="width: 260px; max-height: 250px; overflow-y: auto;">
-            <select class="form-select form-select-sm" formControlName="customerId" (change)="onCustomerSelectChange($event)">
-              <option [ngValue]="0">Select Farmer</option>
-              <option *ngFor="let c of customers" [ngValue]="c.id">
-                #{{ c.farmerCode }} · {{ c.name }}
-              </option>
-            </select>
+    </div>
+    
+    <!-- Attendance stats counts footer -->
+    <div class="amcu-attendance-row font-monospace mb-3">
+      <span>Present: <strong class="text-primary">{{ presentCount }}</strong></span>
+      <span>Absent: <strong class="text-danger">{{ absentCount }}</strong></span>
+      <span>Total: <strong>{{ totalFarmersCount }}</strong></span>
+    </div>
+  </div>
+
+  <!-- Primary Floating Action Button at the bottom to Record Milk Collection -->
+  <div class="p-3 bg-light border-top no-print sticky-bottom">
+    <button type="button" class="btn btn-dairy w-100 py-2.5 fw-bold" (click)="showAddForm = true">
+      <i class="bi bi-plus-circle-fill me-2"></i> RECORD MILK COLLECTION
+    </button>
+  </div>
+
+</ng-container>
+
+<!-- SCREEN 2: HIGH-SPEED FORM COLLECTION INPUT VIEW -->
+<ng-container *ngIf="showAddForm">
+  
+  <section class="p-3">
+    <form [formGroup]="form" (ngSubmit)="submit()" (keydown.enter)="$event.preventDefault()">
+      
+      <!-- Static parameters toggles -->
+      <div class="amcu-filter-bar no-print mb-3">
+        <div class="d-flex align-items-center gap-1">
+          <i class="bi bi-calendar3 text-secondary"></i>
+          <input class="amcu-date-input" type="date" formControlName="entryDate" />
+        </div>
+        <div class="amcu-toggles">
+          <div class="amcu-toggle-group">
+            <button type="button" class="amcu-toggle-btn" [class.active]="form.get('shift')?.value === 'morning'" (click)="form.patchValue({ shift: 'morning' })">
+              <span>Morn</span>
+            </button>
+            <button type="button" class="amcu-toggle-btn" [class.active]="form.get('shift')?.value === 'evening'" (click)="form.patchValue({ shift: 'evening' })">
+              <span>Even</span>
+            </button>
+          </div>
+          <div class="amcu-toggle-group">
+            <button type="button" class="amcu-toggle-btn" [class.active]="form.get('animalType')?.value === 'cow'" (click)="form.patchValue({ animalType: 'cow' })">
+              <span>Cow</span>
+            </button>
+            <button type="button" class="amcu-toggle-btn" [class.active]="form.get('animalType')?.value === 'buffalo'" (click)="form.patchValue({ animalType: 'buffalo' })">
+              <span>Buf</span>
+            </button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- 4-Column Parameter Input Grid -->
-    <div class="amcu-grid-inputs">
-      <div class="amcu-input-col">
-        <span class="col-label">Liter</span>
-        <input 
-          type="number" 
-          step="0.01" 
-          formControlName="quantity" 
-          (focus)="setActiveField('quantity')" 
-          [class.active-input-field]="activeField === 'quantity'" 
-          class="col-input text-center" 
-          placeholder="0.0" 
-        />
+      <!-- Farmer Selection display card -->
+      <div class="amcu-farmer-card mb-3">
+        <div class="code-col">
+          <input
+            #farmerCodeInput
+            class="code-input text-center fw-bold"
+            [class.active-input-field]="activeField === 'farmerCode'"
+            (focus)="setActiveField('farmerCode')"
+            type="text"
+            formControlName="farmerCode"
+            placeholder="Code"
+            (input)="onFarmerCodeChange(farmerCodeInput.value)"
+            autocomplete="off"
+          />
+        </div>
+        <div class="info-col">
+          <p class="name" *ngIf="selectedCustomerName">{{ selectedCustomerName }}</p>
+          <p class="name text-muted" *ngIf="!selectedCustomerName">Enter Farmer Code</p>
+          <p class="mobile" *ngIf="selectedCustomerMobile">{{ getMaskedMobile(selectedCustomerMobile) }}</p>
+        </div>
+        <div class="search-col">
+          <div class="dropdown d-inline">
+            <button class="btn btn-link p-0 text-secondary" type="button" id="farmerSearchDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="bi bi-search"></i>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end p-2 shadow-lg" aria-labelledby="farmerSearchDropdown" style="width: 260px; max-height: 250px; overflow-y: auto;">
+              <select class="form-select form-select-sm" formControlName="customerId" (change)="onCustomerSelectChange($event)">
+                <option [ngValue]="0">Select Farmer</option>
+                <option *ngFor="let c of customers" [ngValue]="c.id">
+                  #{{ c.farmerCode }} · {{ c.name }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="amcu-input-col">
-        <span class="col-label">FAT</span>
-        <input 
-          type="number" 
-          step="0.1" 
-          formControlName="fat" 
-          (focus)="setActiveField('fat')" 
-          [class.active-input-field]="activeField === 'fat'" 
-          class="col-input text-center" 
-          placeholder="0.0" 
-        />
+
+      <!-- 4-Column input parameters grid -->
+      <div class="amcu-grid-inputs mb-3">
+        <div class="amcu-input-col">
+          <span class="col-label">Liter</span>
+          <input 
+            type="number" 
+            step="0.01" 
+            formControlName="quantity" 
+            (focus)="setActiveField('quantity')" 
+            [class.active-input-field]="activeField === 'quantity'" 
+            class="col-input text-center" 
+            placeholder="0.0" 
+          />
+        </div>
+        <div class="amcu-input-col">
+          <span class="col-label">FAT</span>
+          <input 
+            type="number" 
+            step="0.1" 
+            formControlName="fat" 
+            (focus)="setActiveField('fat')" 
+            [class.active-input-field]="activeField === 'fat'" 
+            class="col-input text-center" 
+            placeholder="0.0" 
+          />
+        </div>
+        <div class="amcu-input-col">
+          <span class="col-label">SNF</span>
+          <input 
+            type="number" 
+            step="0.1" 
+            formControlName="snf" 
+            (focus)="setActiveField('snf')" 
+            [class.active-input-field]="activeField === 'snf'" 
+            class="col-input text-center" 
+            placeholder="0.0" 
+          />
+        </div>
+        <div class="amcu-input-col">
+          <span class="col-label text-success">Rate</span>
+          <div class="col-value text-success font-monospace">₹{{ calculatedRate | number: '1.2-2' }}</div>
+        </div>
       </div>
-      <div class="amcu-input-col">
-        <span class="col-label">SNF</span>
-        <input 
-          type="number" 
-          step="0.1" 
-          formControlName="snf" 
-          (focus)="setActiveField('snf')" 
-          [class.active-input-field]="activeField === 'snf'" 
-          class="col-input text-center" 
-          placeholder="0.0" 
-        />
+
+      <!-- Yesterday stats check bar -->
+      <div class="amcu-comparison-bar font-monospace mb-3" *ngIf="selectedCustomerName && yesterdayQty > 0">
+        <span>Yesterday (काल):</span>
+        <span>{{ yesterdayQty | number: '1.2-2' }} L · ₹{{ yesterdayRate | number: '1.2-2' }} / L</span>
       </div>
-      <div class="amcu-input-col">
-        <span class="col-label text-success">Rate</span>
-        <div class="col-value text-success font-monospace">₹{{ calculatedRate | number: '1.2-2' }}</div>
-      </div>
-    </div>
 
-    <!-- Previous Day Info / Comparison Bar -->
-    <div class="amcu-comparison-bar font-monospace" *ngIf="selectedCustomerName && yesterdayQty > 0">
-      <span>Yesterday (काल):</span>
-      <span>{{ yesterdayQty | number: '1.2-2' }} L · ₹{{ yesterdayRate | number: '1.2-2' }} / L</span>
-    </div>
-
-    <!-- Bottom Action Row Split -->
-    <div class="amcu-footer-actions no-print">
-      <button type="button" class="amcu-action-btn reset-btn" (click)="resetForm()">
-        <i class="bi bi-arrow-counterclockwise"></i> RESET
-      </button>
-      <button type="submit" class="amcu-action-btn save-print-btn" [disabled]="saving">
-        <i class="bi bi-printer-fill" *ngIf="!saving"></i>
-        <span class="spinner" *ngIf="saving" style="width:14px;height:14px;border-width:2px;margin:0;"></span>
-        {{ saving ? "SAVING..." : "SAVE & PRINT" }}
-      </button>
-    </div>
-
-    <!-- Touchscreen Keypad Panel (Hides on Desktop / Responsive print) -->
-    <div class="numeric-keypad-container no-print mt-3">
-      <div class="keypad-header mb-2 d-flex justify-content-between small">
-        <span class="fw-bold"><i class="bi bi-keyboard-fill text-teal me-1"></i> Touch Input Keyboard</span>
-        <span class="badge bg-teal text-white">{{ activeField | uppercase }} ACTIVE</span>
-      </div>
-      <div class="numeric-keypad">
-        <button type="button" class="keypad-btn" (click)="onKeypadClick('7')">7</button>
-        <button type="button" class="keypad-btn" (click)="onKeypadClick('8')">8</button>
-        <button type="button" class="keypad-btn" (click)="onKeypadClick('9')">9</button>
-        <button type="button" class="keypad-btn action-btn" (click)="keypadBackspace()"><i class="bi bi-backspace-fill"></i></button>
-
-        <button type="button" class="keypad-btn" (click)="onKeypadClick('4')">4</button>
-        <button type="button" class="keypad-btn" (click)="onKeypadClick('5')">5</button>
-        <button type="button" class="keypad-btn" (click)="onKeypadClick('6')">6</button>
-        <button type="button" class="keypad-btn action-btn text-teal" (click)="keypadNext()" style="font-size: 0.85rem;">NEXT</button>
-
-        <button type="button" class="keypad-btn" (click)="onKeypadClick('1')">1</button>
-        <button type="button" class="keypad-btn" (click)="onKeypadClick('2')">2</button>
-        <button type="button" class="keypad-btn" (click)="onKeypadClick('3')">3</button>
-        <button type="button" class="keypad-btn" (click)="onKeypadClick('.')">.</button>
-
-        <button type="button" class="keypad-btn" (click)="onKeypadClick('0')">0</button>
-        <button type="submit" class="keypad-btn save-btn fw-bold" [disabled]="saving">
-          <i class="bi bi-printer-fill me-1" *ngIf="!saving"></i>
-          <span class="spinner" *ngIf="saving" style="width:12px;height:12px;border-width:2px;margin:0;"></span>
-          SAVE
+      <!-- Actions bottom split row -->
+      <div class="amcu-footer-actions no-print mb-3">
+        <button type="button" class="amcu-action-btn reset-btn" (click)="resetForm()">
+          <i class="bi bi-arrow-counterclockwise"></i> RESET
+        </button>
+        <button type="submit" class="amcu-action-btn save-print-btn" [disabled]="saving">
+          <i class="bi bi-printer-fill" *ngIf="!saving"></i>
+          <span class="spinner" *ngIf="saving" style="width:14px;height:14px;border-width:2px;margin:0;"></span>
+          {{ saving ? "SAVING..." : "SAVE & PRINT" }}
         </button>
       </div>
-    </div>
 
-  </form>
-</section>
-
-<!-- Today's Collection History Logs list -->
-<section class="mb-4">
-  <div class="amcu-list-container">
-    <div class="list-stack" *ngIf="loading">
-      <div class="skeleton skeleton-card" *ngFor="let i of [1, 2]"></div>
-    </div>
-
-    <div class="empty-state py-4" *ngIf="!loading && !collections.length">
-      <i class="bi bi-droplet text-muted" style="font-size: 2.5rem;"></i>
-      <p class="small text-muted mt-2">No collections logged today</p>
-    </div>
-
-    <!-- History items list -->
-    <div *ngIf="!loading && collections.length">
-      <div class="amcu-list-item" *ngFor="let row of collections; let idx = index">
-        <div class="idx-col">{{ row.farmerCode || idx + 1 }}</div>
-        <div class="body-col">
-          <p class="name">{{ row.customerName }}</p>
-          <p class="details">
-            <span>{{ row.shift === 'morning' ? '☀️' : '🌙' }}</span>
-            <span>🐄 FAT: {{ row.fat | number:'1.1-1' }} | SNF: {{ row.snf | number:'1.1-1' }}</span>
-          </p>
+      <!-- Keypad touchscreen panel -->
+      <div class="numeric-keypad-container no-print">
+        <div class="keypad-header mb-2 d-flex justify-content-between small">
+          <span class="fw-bold"><i class="bi bi-keyboard-fill text-teal me-1"></i> Quick Input Keypad</span>
+          <span class="badge bg-teal text-white">{{ activeField | uppercase }} ACTIVE</span>
         </div>
-        <div class="amt-col">
-          <p class="amount">₹{{ row.totalAmount | number: '1.2-2' }}</p>
-          <p class="formula">{{ row.rate | number: '1.2-2' }} x {{ row.quantity | number: '1.2-2' }}l</p>
+        <div class="numeric-keypad">
+          <button type="button" class="keypad-btn" (click)="onKeypadClick('7')">7</button>
+          <button type="button" class="keypad-btn" (click)="onKeypadClick('8')">8</button>
+          <button type="button" class="keypad-btn" (click)="onKeypadClick('9')">9</button>
+          <button type="button" class="keypad-btn action-btn" (click)="keypadBackspace()"><i class="bi bi-backspace-fill"></i></button>
+
+          <button type="button" class="keypad-btn" (click)="onKeypadClick('4')">4</button>
+          <button type="button" class="keypad-btn" (click)="onKeypadClick('5')">5</button>
+          <button type="button" class="keypad-btn" (click)="onKeypadClick('6')">6</button>
+          <button type="button" class="keypad-btn action-btn text-teal" (click)="keypadNext()" style="font-size: 0.85rem;">NEXT</button>
+
+          <button type="button" class="keypad-btn" (click)="onKeypadClick('1')">1</button>
+          <button type="button" class="keypad-btn" (click)="onKeypadClick('2')">2</button>
+          <button type="button" class="keypad-btn" (click)="onKeypadClick('3')">3</button>
+          <button type="button" class="keypad-btn" (click)="onKeypadClick('.')">.</button>
+
+          <button type="button" class="keypad-btn" (click)="onKeypadClick('0')">0</button>
+          <button type="submit" class="keypad-btn save-btn fw-bold" [disabled]="saving">
+            <i class="bi bi-printer-fill me-1" *ngIf="!saving"></i>
+            <span class="spinner" *ngIf="saving" style="width:12px;height:12px;border-width:2px;margin:0;"></span>
+            SAVE
+          </button>
         </div>
       </div>
-    </div>
-  </div>
-</section>
 
-<!-- Bottom Summary Aggregates & Attendance counts footer -->
-<div class="amcu-summary-footer font-monospace" *ngIf="!loading && collections.length">
-  <div class="amcu-summary-grid">
-    <div class="summary-col">
-      <span class="label">FAT</span>
-      <span class="val">{{ avgFat | number: '1.2-2' }}</span>
-    </div>
-    <div class="summary-col">
-      <span class="label">SNF</span>
-      <span class="val">{{ avgSnf | number: '1.2-2' }}</span>
-    </div>
-    <div class="summary-col">
-      <span class="label">Rate</span>
-      <span class="val">₹{{ avgRate | number: '1.2-2' }}</span>
-    </div>
-    <div class="summary-col">
-      <span class="label">Liter</span>
-      <span class="val">{{ totalLiters | number: '1.2-2' }}L</span>
-    </div>
-    <div class="summary-col">
-      <span class="label">Amount</span>
-      <span class="val text-success">₹{{ totalAmount | number: '1.0-0' }}</span>
-    </div>
-  </div>
-  
-  <div class="amcu-attendance-row">
-    <span>Present: <strong class="text-teal">{{ presentCount }}</strong></span>
-    <span>Absent: <strong class="text-danger">{{ absentCount }}</strong></span>
-    <span>Total: <strong>{{ totalFarmersCount }}</strong></span>
-  </div>
-</div>
+    </form>
+  </section>
+
+</ng-container>

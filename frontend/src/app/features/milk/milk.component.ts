@@ -1,6 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { Component, ElementRef, OnInit, ViewChild, inject } from "@angular/core";
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
+import { Router, RouterModule } from "@angular/router";
 import { Customer } from "../../core/models/customer.model";
 import { MilkCollection } from "../../core/models/milk.model";
 import { CustomerService } from "../../core/services/customer.service";
@@ -12,11 +13,12 @@ import { TranslationService } from "../../core/services/translation.service";
 @Component({
   selector: "app-milk",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
   templateUrl: "./milk.component.html"
 })
 export class MilkComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
   private readonly milkService = inject(MilkService);
   private readonly customerService = inject(CustomerService);
   private readonly rateChartService = inject(RateChartService);
@@ -27,7 +29,18 @@ export class MilkComponent implements OnInit {
 
   customers: Customer[] = [];
   collections: MilkCollection[] = [];
-  
+  showAddForm = false; // False by default to show collections list view first
+  showQuickAddCustomer = false;
+  listShiftFilter: "morning" | "evening" = "morning";
+  listAnimalFilter: "cow" | "buffalo" = "cow";
+
+  quickCustomerForm = this.fb.group({
+    farmerCode: ["", [Validators.required]],
+    name: ["", [Validators.required]],
+    mobile: ["", [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
+    defaultAnimalType: ["cow", [Validators.required]]
+  });
+
   // Custom Keypad properties
   activeField: "farmerCode" | "quantity" | "fat" | "snf" | "clr" = "farmerCode";
   
@@ -189,34 +202,43 @@ export class MilkComponent implements OnInit {
   }
 
   // Summary footer calculations
+  get filteredCollections(): MilkCollection[] {
+    return this.collections.filter((c) => {
+      const dateMatch = (c.entryDate || "").toString().slice(0, 10) === (this.form.get("entryDate")?.value || "").slice(0, 10);
+      const shiftMatch = c.shift === this.listShiftFilter;
+      const animalMatch = c.animalType === this.listAnimalFilter;
+      return dateMatch && shiftMatch && animalMatch;
+    });
+  }
+
   get totalLiters(): number {
-    return this.collections.reduce((sum, c) => sum + Number(c.quantity || 0), 0);
+    return this.filteredCollections.reduce((sum, c) => sum + Number(c.quantity || 0), 0);
   }
 
   get totalAmount(): number {
-    return this.collections.reduce((sum, c) => sum + Number(c.totalAmount || 0), 0);
+    return this.filteredCollections.reduce((sum, c) => sum + Number(c.totalAmount || 0), 0);
   }
 
   get avgFat(): number {
-    const valid = this.collections.filter(c => Number(c.fat) > 0);
+    const valid = this.filteredCollections.filter(c => Number(c.fat) > 0);
     if (valid.length === 0) return 0;
     return valid.reduce((sum, c) => sum + Number(c.fat || 0), 0) / valid.length;
   }
 
   get avgSnf(): number {
-    const valid = this.collections.filter(c => Number(c.snf) > 0);
+    const valid = this.filteredCollections.filter(c => Number(c.snf) > 0);
     if (valid.length === 0) return 0;
     return valid.reduce((sum, c) => sum + Number(c.snf || 0), 0) / valid.length;
   }
 
   get avgRate(): number {
-    const valid = this.collections.filter(c => Number(c.rate) > 0);
+    const valid = this.filteredCollections.filter(c => Number(c.rate) > 0);
     if (valid.length === 0) return 0;
     return valid.reduce((sum, c) => sum + Number(c.rate || 0), 0) / valid.length;
   }
 
   get presentCount(): number {
-    return new Set(this.collections.map(c => c.customerId)).size;
+    return new Set(this.filteredCollections.map(c => c.customerId)).size;
   }
 
   get absentCount(): number {
@@ -439,5 +461,59 @@ Thank you! - Dairy Center`;
     const encodedText = encodeURIComponent(messageText);
     const whatsappUrl = `https://api.whatsapp.com/send?phone=91${targetMobile}&text=${encodedText}`;
     window.open(whatsappUrl, "_blank");
+  }
+
+  saveQuickCustomer(): void {
+    if (this.quickCustomerForm.invalid) {
+      this.quickCustomerForm.markAllAsTouched();
+      return;
+    }
+    const val = this.quickCustomerForm.value;
+    const payload = {
+      farmerCode: val.farmerCode!.trim(),
+      name: val.name!.trim(),
+      mobile: val.mobile!.trim(),
+      defaultAnimalType: val.defaultAnimalType || "cow",
+      status: "active" as const
+    };
+
+    this.customerService.addCustomer(payload as any).subscribe({
+      next: (res) => {
+        // Reload customers list
+        this.customerService.getCustomers().subscribe((list) => {
+          this.customers = list;
+          // Automatically select the new farmer
+          const added = this.customers.find(c => c.farmerCode === payload.farmerCode);
+          if (added) {
+            this.form.patchValue({
+              customerId: added.id,
+              farmerCode: added.farmerCode,
+              animalType: added.defaultAnimalType || "cow"
+            });
+            this.selectedCustomerName = added.name;
+            this.selectedCustomerMobile = added.mobile || "";
+            this.updateYesterdayInfo(added.id);
+          }
+        });
+        
+        this.quickCustomerForm.reset({ defaultAnimalType: "cow" });
+        this.showQuickAddCustomer = false;
+        this.msg = "New Farmer added successfully!";
+        setTimeout(() => this.msg = "", 3000);
+      },
+      error: (err) => {
+        alert(err?.error?.message || "Failed to add farmer code");
+      }
+    });
+  }
+
+  goBack(): void {
+    if (this.showQuickAddCustomer) {
+      this.showQuickAddCustomer = false;
+    } else if (this.showAddForm) {
+      this.showAddForm = false;
+    } else {
+      this.router.navigate(["/dashboard"]);
+    }
   }
 }
