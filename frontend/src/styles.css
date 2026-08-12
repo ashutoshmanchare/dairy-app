@@ -4,25 +4,25 @@
 
 :root {
   --milk-white: #ffffff;
-  --soft-cream: #f0fdfa;
-  --dairy-blue: #0d9488;
-  --dairy-blue-light: #2dd4bf;
+  --soft-cream: #fbfbf2;
+  --dairy-blue: #0f766e;
+  --dairy-blue-light: #14b8a6;
   --fresh-green: #115e59;
-  --fresh-green-light: #14b8a6;
-  --dark-green: #0f766e;
-  --dark-text: #0f172a;
+  --fresh-green-light: #34d399;
+  --dark-green: #0d5c56;
+  --dark-text: #1e293b;
   --secondary-text: #475569;
   --muted-text: #94a3b8;
-  --light-bg: #f8fafc;
+  --light-bg: #fdfdf9;
   --border-soft: #e2e8f0;
   --danger: #ef4444;
-  --warning: #f59e0b;
+  --warning: #d97706;
   --success: #10b981;
 
-  --grad-primary: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
-  --grad-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  --grad-cream: linear-gradient(160deg, #ffffff 0%, #f0fdfa 55%, #f0fdf4 100%);
-  --grad-hero: linear-gradient(135deg, #ccfbf1 0%, #f0fdfa 50%, #d1fae5 100%);
+  --grad-primary: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+  --grad-success: linear-gradient(135deg, #10b981 0%, #0f766e 100%);
+  --grad-cream: linear-gradient(160deg, #ffffff 0%, #fbfbf2 55%, #f0fdf4 100%);
+  --grad-hero: linear-gradient(135deg, #fef08a 0%, #fbfbf2 50%, #ccfbf1 100%);
 
   --radius-sm: 12px;
   --radius-md: 16px;
@@ -1494,3 +1494,190 @@ a:hover {
     box-shadow: none;
   }
 }
+
+/* ---------- Language Toggle Buttons ---------- */
+.lang-toggle-btn {
+  border: 1px solid var(--border-soft);
+  background: var(--milk-white);
+  color: var(--dairy-blue);
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+.lang-toggle-btn.active {
+  background: var(--dairy-blue);
+  color: var(--milk-white);
+  border-color: var(--dairy-blue);
+}
+
+/* ---------- Active Input Highlight for Custom Keypad ---------- */
+.active-input-field {
+  border-color: var(--dairy-blue) !important;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15) !important;
+  background-color: #fbfcf4 !important;
+  position: relative;
+}
+.active-input-field::after {
+  content: "✏️ Keypad Active";
+  position: absolute;
+  top: -18px;
+  right: 4px;
+  font-size: 0.65rem;
+  color: var(--dairy-blue);
+  font-weight: 700;
+}
+
+/* ---------- Touchscreen On-Screen Numeric Keypad ---------- */
+.numeric-keypad-container {
+  background: #f1f5f9;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  box-shadow: var(--shadow-sm);
+}
+.keypad-header {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--secondary-text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--space-2);
+  display: flex;
+  justify-content: space-between;
+}
+.numeric-keypad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.keypad-btn {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--milk-white);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--dark-text);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: background 0.1s ease, transform 0.05s ease;
+}
+.keypad-btn:active {
+  background: #e2e8f0;
+  transform: scale(0.96);
+}
+.keypad-btn.action-btn {
+  background: #cbd5e1;
+  color: var(--dark-text);
+}
+.keypad-btn.action-btn:active {
+  background: #94a3b8;
+}
+.keypad-btn.save-btn {
+  background: var(--warning);
+  color: var(--milk-white);
+  grid-column: span 2;
+  font-size: 1.1rem;
+}
+.keypad-btn.save-btn:active {
+  background: #b45309;
+}
+
+/* ---------- Shift Comparison Cards ---------- */
+.shift-compare-container {
+  display: flex;
+  gap: var(--space-3);
+}
+.shift-card {
+  flex: 1;
+  background: var(--milk-white);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease;
+}
+.shift-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.shift-card.morning {
+  border-left: 4px solid var(--warning);
+}
+.shift-card.evening {
+  border-left: 4px solid #6366f1;
+}
+.shift-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.shift-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+}
+.shift-card.morning .shift-icon {
+  background: #fef3c7;
+  color: var(--warning);
+}
+.shift-card.evening .shift-icon {
+  background: #e0e7ff;
+  color: #6366f1;
+}
+.shift-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--dark-text);
+  margin: 0;
+}
+.shift-stat-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  font-size: 0.8rem;
+}
+.shift-stat-row .label {
+  color: var(--secondary-text);
+}
+.shift-stat-row .value {
+  font-weight: 700;
+  color: var(--dark-text);
+}
+.shift-card-total {
+  border-top: 1px dashed var(--border-soft);
+  padding-top: var(--space-2);
+  margin-top: var(--space-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.shift-card-total .total-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--secondary-text);
+}
+.shift-card-total .total-value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--dairy-blue);
+}
+@media (max-width: 480px) {
+  .shift-compare-container {
+    flex-direction: column;
+  }
+}
+

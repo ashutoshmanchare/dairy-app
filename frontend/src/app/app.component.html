@@ -3,38 +3,47 @@
     <a routerLink="/dashboard" class="brand">
       <img src="assets/logo/dairy-logo.svg" alt="Dairy logo" />
       <span class="brand-text">
-        <span>DairyPro</span>
-        <small>Management</small>
+        <span>{{ translation.t('brand_title') }}</span>
+        <small>{{ translation.t('sub_brand') }}</small>
       </span>
     </a>
-    <div class="d-flex align-items-center gap-1 desktop-links">
-      <a routerLink="/login" routerLinkActive="active" *ngIf="!isLoggedIn">
-        <i class="bi bi-box-arrow-in-right me-1"></i>Login
-      </a>
-      <a routerLink="/register" routerLinkActive="active" *ngIf="!isLoggedIn">
-        <i class="bi bi-person-plus me-1"></i>Register
-      </a>
-      <a routerLink="/dashboard" routerLinkActive="active" *ngIf="isLoggedIn">
-        <i class="bi bi-house-door me-1"></i>Home
-      </a>
-      <a routerLink="/customers" routerLinkActive="active" *ngIf="isLoggedIn">
-        <i class="bi bi-people me-1"></i>Customers
-      </a>
-      <a routerLink="/milk" routerLinkActive="active" *ngIf="isLoggedIn">
-        <i class="bi bi-droplet me-1"></i>Collection
-      </a>
-      <a routerLink="/payment" routerLinkActive="active" *ngIf="isLoggedIn">
-        <i class="bi bi-wallet2 me-1"></i>Payments
-      </a>
-      <a routerLink="/reports" routerLinkActive="active" *ngIf="isLoggedIn">
-        <i class="bi bi-graph-up me-1"></i>Reports
-      </a>
-      <a routerLink="/more" routerLinkActive="active" *ngIf="isLoggedIn">
-        <i class="bi bi-grid me-1"></i>More
-      </a>
-      <button class="btn btn-sm btn-dairy-outline" type="button" (click)="logout()" *ngIf="isLoggedIn">
-        <i class="bi bi-box-arrow-right"></i> Logout
+    
+    <div class="d-flex align-items-center gap-2">
+      <!-- Language Switcher (Visible everywhere) -->
+      <button class="btn btn-sm lang-toggle-btn d-flex align-items-center gap-1 shadow-sm" type="button" (click)="translation.toggleLanguage()" *ngIf="isLoggedIn">
+        <i class="bi bi-translate text-teal"></i> 
+        <span>{{ translation.currentLanguage === 'en' ? 'मराठी' : 'ENG' }}</span>
       </button>
+
+      <div class="d-flex align-items-center gap-1 desktop-links">
+        <a routerLink="/login" routerLinkActive="active" *ngIf="!isLoggedIn">
+          <i class="bi bi-box-arrow-in-right me-1"></i>Login
+        </a>
+        <a routerLink="/register" routerLinkActive="active" *ngIf="!isLoggedIn">
+          <i class="bi bi-person-plus me-1"></i>Register
+        </a>
+        <a routerLink="/dashboard" routerLinkActive="active" *ngIf="isLoggedIn">
+          <i class="bi bi-house-door me-1"></i>{{ translation.t('nav_home') }}
+        </a>
+        <a routerLink="/customers" routerLinkActive="active" *ngIf="isLoggedIn">
+          <i class="bi bi-people me-1"></i>{{ translation.t('nav_customers') }}
+        </a>
+        <a routerLink="/milk" routerLinkActive="active" *ngIf="isLoggedIn">
+          <i class="bi bi-droplet me-1"></i>{{ translation.t('nav_collection') }}
+        </a>
+        <a routerLink="/payment" routerLinkActive="active" *ngIf="isLoggedIn">
+          <i class="bi bi-wallet2 me-1"></i>{{ translation.t('nav_payments') }}
+        </a>
+        <a routerLink="/reports" routerLinkActive="active" *ngIf="isLoggedIn">
+          <i class="bi bi-graph-up me-1"></i>Reports
+        </a>
+        <a routerLink="/more" routerLinkActive="active" *ngIf="isLoggedIn">
+          <i class="bi bi-grid me-1"></i>{{ translation.t('nav_more') }}
+        </a>
+        <button class="btn btn-sm btn-dairy-outline ms-2" type="button" (click)="logout()" *ngIf="isLoggedIn">
+          <i class="bi bi-box-arrow-right"></i> {{ translation.t('logout') }}
+        </button>
+      </div>
     </div>
   </div>
 </nav>

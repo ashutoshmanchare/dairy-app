@@ -7,6 +7,7 @@ import { CustomerService } from "../../core/services/customer.service";
 import { MilkService } from "../../core/services/milk.service";
 import { OfflineService } from "../../core/services/offline.service";
 import { RateChartService } from "../../core/services/rate-chart.service";
+import { TranslationService } from "../../core/services/translation.service";
 
 @Component({
   selector: "app-milk",
@@ -20,11 +21,15 @@ export class MilkComponent implements OnInit {
   private readonly customerService = inject(CustomerService);
   private readonly rateChartService = inject(RateChartService);
   private readonly offlineService = inject(OfflineService);
+  readonly translation = inject(TranslationService);
 
   @ViewChild("farmerCodeInput") farmerCodeInput!: ElementRef;
 
   customers: Customer[] = [];
   collections: MilkCollection[] = [];
+  
+  // Custom Keypad properties
+  activeField: "farmerCode" | "quantity" | "fat" | "snf" | "clr" = "farmerCode";
   
   totalPreview = 0;
   calculatedRate = 0;
@@ -227,6 +232,7 @@ export class MilkComponent implements OnInit {
       this.selectedCustomerName = "";
       this.calculatedRate = 0;
       this.totalPreview = 0;
+      this.activeField = "farmerCode";
       this.load();
 
       setTimeout(() => {
@@ -259,6 +265,7 @@ export class MilkComponent implements OnInit {
         this.selectedCustomerName = "";
         this.calculatedRate = 0;
         this.totalPreview = 0;
+        this.activeField = "farmerCode";
         this.load();
         
         setTimeout(() => {
@@ -272,6 +279,61 @@ export class MilkComponent implements OnInit {
         this.saving = false;
       }
     });
+  }
+
+  setActiveField(field: "farmerCode" | "quantity" | "fat" | "snf" | "clr"): void {
+    this.activeField = field;
+  }
+
+  onKeypadClick(key: string): void {
+    const control = this.form.get(this.activeField);
+    if (!control) return;
+    const currentVal = control.value !== null && control.value !== undefined ? String(control.value) : "";
+    
+    if (key === ".") {
+      if (!currentVal.includes(".")) {
+        control.setValue(currentVal === "" ? "0." : currentVal + ".");
+      }
+    } else {
+      if (currentVal === "0" || currentVal === "") {
+        control.setValue(key);
+      } else {
+        control.setValue(currentVal + key);
+      }
+    }
+    
+    if (this.activeField === "farmerCode") {
+      this.onFarmerCodeChange(String(control.value || ""));
+    }
+    this.updateCalculations();
+  }
+
+  keypadBackspace(): void {
+    const control = this.form.get(this.activeField);
+    if (!control) return;
+    const currentVal = String(control.value || "");
+    if (currentVal.length > 0) {
+      const nextVal = currentVal.slice(0, -1);
+      control.setValue(nextVal === "" ? null : nextVal);
+    }
+    
+    if (this.activeField === "farmerCode") {
+      this.onFarmerCodeChange(String(control.value || ""));
+    }
+    this.updateCalculations();
+  }
+
+  keypadNext(): void {
+    const sequence: Array<"farmerCode" | "quantity" | "fat" | "snf" | "clr"> = [
+      "farmerCode",
+      "quantity",
+      "fat",
+      "snf",
+      "clr"
+    ];
+    const curIdx = sequence.indexOf(this.activeField);
+    const nextIdx = (curIdx + 1) % sequence.length;
+    this.setActiveField(sequence[nextIdx]);
   }
 
   shareWhatsApp(row: MilkCollection | any): void {
