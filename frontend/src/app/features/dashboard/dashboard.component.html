@@ -1,6 +1,13 @@
 <!-- Top Brand Header Bar -->
 <div class="home-brand-header no-print">
-  <div class="mobiledairy-logo-text">mobile<span>dairy</span></div>
+  <!-- Exact SVG replication of the mobile dairy brand logo -->
+  <div style="display: inline-flex; align-items: center; height: 32px;">
+    <svg width="135" height="28" viewBox="0 0 135 28" xmlns="http://www.w3.org/2000/svg">
+      <text x="2" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="16.5" fill="#2d2d74" letter-spacing="-0.03em">mobile</text>
+      <text x="56" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="16.5" fill="#319f96" letter-spacing="-0.03em">dairy</text>
+      <path d="M 58 23 Q 92 31 126 23" fill="none" stroke="#319f96" stroke-width="2.2" stroke-linecap="round"/>
+    </svg>
+  </div>
   <div class="d-flex align-items-center gap-2">
     <!-- Language Switcher -->
     <button class="btn btn-sm lang-toggle-btn d-flex align-items-center gap-1 shadow-sm" type="button" (click)="translation.toggleLanguage()">
@@ -8,9 +15,9 @@
       <span>{{ translation.currentLanguage === 'en' ? 'मराठी' : 'ENG' }}</span>
     </button>
 
-    <button class="home-settings-link ms-1" routerLink="/more">
+    <button class="home-settings-link ms-1" routerLink="/more" style="color: #2d2d74; font-weight: 700;">
       <span>Settings</span>
-      <i class="bi bi-gear-fill"></i>
+      <i class="bi bi-gear" style="color: #2d2d74; font-size: 1.15rem;"></i>
     </button>
   </div>
 </div>
