@@ -31,6 +31,11 @@ export class MilkComponent implements OnInit {
   // Custom Keypad properties
   activeField: "farmerCode" | "quantity" | "fat" | "snf" | "clr" = "farmerCode";
   
+  selectedCustomerName = "";
+  selectedCustomerMobile = "";
+  yesterdayQty = 0;
+  yesterdayRate = 0;
+
   totalPreview = 0;
   calculatedRate = 0;
   loading = true;
@@ -38,7 +43,6 @@ export class MilkComponent implements OnInit {
   msg = "";
   
   customerFilter = "";
-  selectedCustomerName = "";
 
   isOnline = true;
   queuedCount = 0;
@@ -112,11 +116,39 @@ export class MilkComponent implements OnInit {
     });
   }
 
+  getMaskedMobile(mobile?: string): string {
+    if (!mobile) return "";
+    const clean = mobile.replace(/[^0-9]/g, "");
+    if (clean.length < 10) return clean;
+    return clean.slice(0, 6) + "XXXX";
+  }
+
+  updateYesterdayInfo(customerId: number): void {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().slice(0, 10);
+    
+    const match = this.collections.find(
+      (c) => c.customerId === customerId && (c.entryDate || "").toString().slice(0, 10) === yesterdayStr
+    );
+    
+    if (match) {
+      this.yesterdayQty = match.quantity;
+      this.yesterdayRate = match.rate;
+    } else {
+      this.yesterdayQty = 0;
+      this.yesterdayRate = 0;
+    }
+  }
+
   onFarmerCodeChange(code: string): void {
     const trimmed = code.trim();
     if (!trimmed) {
       this.form.patchValue({ customerId: 0 });
       this.selectedCustomerName = "";
+      this.selectedCustomerMobile = "";
+      this.yesterdayQty = 0;
+      this.yesterdayRate = 0;
       return;
     }
 
@@ -127,14 +159,23 @@ export class MilkComponent implements OnInit {
         animalType: farmer.defaultAnimalType || "cow"
       }, { emitEvent: false });
       this.selectedCustomerName = farmer.name;
+      this.selectedCustomerMobile = farmer.mobile || "";
+      this.updateYesterdayInfo(farmer.id);
     } else {
       this.form.patchValue({ customerId: 0 }, { emitEvent: false });
       this.selectedCustomerName = "Farmer Code not found";
+      this.selectedCustomerMobile = "";
+      this.yesterdayQty = 0;
+      this.yesterdayRate = 0;
     }
   }
 
   onCustomerSelectChange(event: any): void {
-    const id = Number(event.target.value);
+    const targetVal = event.target?.value;
+    if (!targetVal) return;
+    const parts = targetVal.split(":");
+    const id = Number(parts[1]?.trim() || parts[0]?.trim() || targetVal);
+
     const farmer = this.customers.find((c) => c.id === id);
     if (farmer) {
       this.form.patchValue({
@@ -142,7 +183,66 @@ export class MilkComponent implements OnInit {
         animalType: farmer.defaultAnimalType || "cow"
       });
       this.selectedCustomerName = farmer.name;
+      this.selectedCustomerMobile = farmer.mobile || "";
+      this.updateYesterdayInfo(farmer.id);
     }
+  }
+
+  // Summary footer calculations
+  get totalLiters(): number {
+    return this.collections.reduce((sum, c) => sum + Number(c.quantity || 0), 0);
+  }
+
+  get totalAmount(): number {
+    return this.collections.reduce((sum, c) => sum + Number(c.totalAmount || 0), 0);
+  }
+
+  get avgFat(): number {
+    const valid = this.collections.filter(c => Number(c.fat) > 0);
+    if (valid.length === 0) return 0;
+    return valid.reduce((sum, c) => sum + Number(c.fat || 0), 0) / valid.length;
+  }
+
+  get avgSnf(): number {
+    const valid = this.collections.filter(c => Number(c.snf) > 0);
+    if (valid.length === 0) return 0;
+    return valid.reduce((sum, c) => sum + Number(c.snf || 0), 0) / valid.length;
+  }
+
+  get avgRate(): number {
+    const valid = this.collections.filter(c => Number(c.rate) > 0);
+    if (valid.length === 0) return 0;
+    return valid.reduce((sum, c) => sum + Number(c.rate || 0), 0) / valid.length;
+  }
+
+  get presentCount(): number {
+    return new Set(this.collections.map(c => c.customerId)).size;
+  }
+
+  get absentCount(): number {
+    return Math.max(0, this.customers.length - this.presentCount);
+  }
+
+  get totalFarmersCount(): number {
+    return this.customers.length;
+  }
+
+  resetForm(): void {
+    this.form.patchValue({
+      farmerCode: "",
+      customerId: 0,
+      quantity: 0,
+      fat: 0,
+      snf: 0,
+      clr: 0
+    }, { emitEvent: false });
+    this.selectedCustomerName = "";
+    this.selectedCustomerMobile = "";
+    this.yesterdayQty = 0;
+    this.yesterdayRate = 0;
+    this.calculatedRate = 0;
+    this.totalPreview = 0;
+    this.activeField = "farmerCode";
   }
 
   updateCalculations(): void {
@@ -220,19 +320,7 @@ export class MilkComponent implements OnInit {
       this.msg = "Saved offline (Pending sync)";
       this.lastSavedEntry = offlineEntry;
       
-      this.form.patchValue({
-        farmerCode: "",
-        customerId: 0,
-        quantity: 0,
-        fat: 0,
-        snf: 0,
-        clr: 0
-      }, { emitEvent: false });
-      
-      this.selectedCustomerName = "";
-      this.calculatedRate = 0;
-      this.totalPreview = 0;
-      this.activeField = "farmerCode";
+      this.resetForm();
       this.load();
 
       setTimeout(() => {
@@ -253,19 +341,7 @@ export class MilkComponent implements OnInit {
         this.saving = false;
         this.lastSavedEntry = res;
         
-        this.form.patchValue({
-          farmerCode: "",
-          customerId: 0,
-          quantity: 0,
-          fat: 0,
-          snf: 0,
-          clr: 0
-        }, { emitEvent: false });
-        
-        this.selectedCustomerName = "";
-        this.calculatedRate = 0;
-        this.totalPreview = 0;
-        this.activeField = "farmerCode";
+        this.resetForm();
         this.load();
         
         setTimeout(() => {
