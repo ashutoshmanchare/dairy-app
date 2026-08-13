@@ -11,13 +11,27 @@
   <span>{{ msg }}</span>
 </div>
 
+<div class="alert alert-danger mb-3" *ngIf="errorMsg" style="padding: 10px 14px; border-radius: 4px; font-size: 0.9rem;">
+  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+  <span>{{ errorMsg }}</span>
+</div>
+
 <!-- Add New Rate Chart -->
 <section class="dm-card mb-4">
   <h2 class="section-title">Create Rate Chart</h2>
   <form [formGroup]="form" (ngSubmit)="submit()">
     <div class="mb-3">
       <label class="form-label">Chart Name</label>
-      <input class="form-control" type="text" formControlName="name" placeholder="e.g. Standard Winter Rate Chart" />
+      <input 
+        class="form-control" 
+        [class.is-invalid]="form.get('name')?.touched && form.get('name')?.invalid"
+        type="text" 
+        formControlName="name" 
+        placeholder="e.g. Standard Winter Rate Chart" 
+      />
+      <div class="invalid-feedback" *ngIf="form.get('name')?.touched && form.get('name')?.invalid" style="color: #dc3545; font-size: 0.8rem; margin-top: 4px;">
+        Chart name is required.
+      </div>
     </div>
 
     <div class="row g-3 mb-3">

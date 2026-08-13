@@ -17,6 +17,7 @@ export class RateChartComponent implements OnInit {
   loading = true;
   saving = false;
   msg = "";
+  errorMsg = "";
 
   form = this.fb.group({
     name: ["", [Validators.required]],
@@ -47,11 +48,15 @@ export class RateChartComponent implements OnInit {
   }
 
   activate(id: number): void {
+    this.errorMsg = "";
     this.rateChartService.setActiveRateChart(id).subscribe({
       next: (res) => {
         this.msg = res.message;
         this.load();
         setTimeout(() => (this.msg = ""), 3000);
+      },
+      error: (err) => {
+        this.errorMsg = err.error?.message || "Failed to activate rate chart.";
       }
     });
   }
@@ -62,6 +67,7 @@ export class RateChartComponent implements OnInit {
       return;
     }
     this.saving = true;
+    this.errorMsg = "";
     const payload = this.form.value;
     
     this.rateChartService.createRateChart(payload).subscribe({
@@ -81,7 +87,10 @@ export class RateChartComponent implements OnInit {
         this.load();
         setTimeout(() => (this.msg = ""), 3000);
       },
-      error: () => (this.saving = false)
+      error: (err) => {
+        this.saving = false;
+        this.errorMsg = err.error?.message || "Failed to create rate chart. Please check inputs.";
+      }
     });
   }
 }

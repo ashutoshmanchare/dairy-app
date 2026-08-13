@@ -1,11 +1,26 @@
 import { CommonModule } from "@angular/common";
 import { Component, OnInit, inject } from "@angular/core";
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
+import { Router } from "@angular/router";
+import { forkJoin } from "rxjs";
 import { Customer } from "../../core/models/customer.model";
 import { MilkCollection } from "../../core/models/milk.model";
 import { CustomerService } from "../../core/services/customer.service";
 import { MilkService } from "../../core/services/milk.service";
+import { AdvanceService } from "../../core/services/advance.service";
+import { DeductionService } from "../../core/services/deduction.service";
 import { PaymentService, PaymentSummary } from "../../core/services/payment.service";
+
+export interface InvoiceRecord {
+  customerId: number;
+  farmerCode: string;
+  customerName: string;
+  rate: number;
+  liter: number;
+  amount: number;
+  deduction: number;
+  payment: number;
+}
 
 @Component({
   selector: "app-invoice",
@@ -15,32 +30,32 @@ import { PaymentService, PaymentSummary } from "../../core/services/payment.serv
 })
 export class InvoiceComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
   private readonly customerService = inject(CustomerService);
   private readonly paymentService = inject(PaymentService);
   private readonly milkService = inject(MilkService);
+  private readonly advanceService = inject(AdvanceService);
+  private readonly deductionService = inject(DeductionService);
+
+  get dairyName(): string {
+    return localStorage.getItem("dairy_name") || "श्री ढोकेश्वर दूध संकलन केंद्र तिखोल";
+  }
 
   customers: Customer[] = [];
-  customerFilter = "";
+  invoiceRecords: InvoiceRecord[] = [];
   loadingSummary = false;
-  newDate = new Date();
   
-  selectedCustomer?: Customer;
-  summary?: PaymentSummary;
-  milkRows: MilkCollection[] = [];
+  // Overall Summary Footer
+  totalRate = 0;
+  totalLiter = 0;
+  totalAmount = 0;
+  totalDeduction = 0;
+  totalPayment = 0;
 
   form = this.fb.group({
-    customerId: [0, [Validators.required, Validators.min(1)]],
     startDate: ["", [Validators.required]],
     endDate: ["", [Validators.required]]
   });
-
-  get filteredCustomers(): Customer[] {
-    const q = this.customerFilter.trim().toLowerCase();
-    if (!q) return this.customers;
-    return this.customers.filter(
-      (c) => c.name.toLowerCase().includes(q) || (c.farmerCode && c.farmerCode.includes(q))
-    );
-  }
 
   ngOnInit(): void {
     const today = new Date().toISOString().slice(0, 10);
@@ -51,39 +66,124 @@ export class InvoiceComponent implements OnInit {
       endDate: today
     });
 
-    this.customerService.getCustomers().subscribe((data) => (this.customers = data));
+    this.form.valueChanges.subscribe(() => {
+      this.generateBatchInvoices();
+    });
+
+    this.generateBatchInvoices();
   }
 
-  generateInvoice(): void {
-    if (this.form.invalid || Number(this.form.value.customerId) === 0) {
-      this.form.markAllAsTouched();
-      return;
-    }
-    
-    const { customerId, startDate, endDate } = this.form.getRawValue() as { customerId: number; startDate: string; endDate: string };
-    
-    this.loadingSummary = true;
-    this.selectedCustomer = this.customers.find(c => c.id === customerId);
+  formatToLocalDate(dateInput: any): string {
+    if (!dateInput) return "";
+    const dateObj = new Date(dateInput);
+    if (isNaN(dateObj.getTime())) return "";
+    const yyyy = dateObj.getFullYear();
+    const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const dd = String(dateObj.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
 
-    this.paymentService.calculateSummary({ customerId, startDate, endDate }).subscribe({
-      next: (sum) => {
-        this.summary = sum;
+  generateBatchInvoices(): void {
+    const startDate = this.form.value.startDate || "";
+    const endDate = this.form.value.endDate || "";
+    if (!startDate || !endDate) return;
+
+    this.loadingSummary = true;
+    
+    forkJoin({
+      customers: this.customerService.getCustomers(),
+      collections: this.milkService.getCollections(),
+      advances: this.advanceService.getAdvances(),
+      deductions: this.deductionService.getDeductions()
+    }).subscribe({
+      next: (res) => {
+        this.customers = res.customers;
         
-        // Fetch all milk collections in this range to show in the detailed table
-        this.milkService.getCollections().subscribe((collections) => {
-          this.milkRows = collections.filter(c => 
-            c.customerId === customerId && 
-            c.entryDate >= startDate && 
-            c.entryDate <= endDate
-          );
-          this.loadingSummary = false;
+        // Filter collections by date
+        const collectionsFiltered = res.collections.filter(c => {
+          const dateStr = this.formatToLocalDate(c.entryDate);
+          return dateStr >= startDate && dateStr <= endDate;
         });
+
+        // Filter deductions by date (unrecovered only)
+        const deductionsFiltered = res.deductions.filter(d => {
+          const dateStr = this.formatToLocalDate(d.deductionDate);
+          return dateStr >= startDate && dateStr <= endDate && d.isRecovered === 0;
+        });
+
+        const recordsMap: Record<number, InvoiceRecord> = {};
+        
+        // Initialize for each customer
+        for (const cust of this.customers) {
+          recordsMap[cust.id] = {
+            customerId: cust.id,
+            farmerCode: cust.farmerCode || "N/A",
+            customerName: cust.name,
+            rate: 0,
+            liter: 0,
+            amount: 0,
+            deduction: 0,
+            payment: 0
+          };
+        }
+
+        // Populate milk totals
+        for (const col of collectionsFiltered) {
+          const record = recordsMap[col.customerId];
+          if (record) {
+            record.liter += Number(col.quantity || 0);
+            record.amount += Number(col.totalAmount || 0);
+          }
+        }
+
+        // Populate deductions
+        for (const ded of deductionsFiltered) {
+          const record = recordsMap[ded.customerId];
+          if (record) {
+            record.deduction += Number(ded.amount || 0);
+          }
+        }
+
+        // Calculate outstanding advances per customer to auto-recover if gross > 0
+        const outstandingAdvancesMap: Record<number, number> = {};
+        for (const adv of res.advances) {
+          const outstanding = Number(adv.amount || 0) - Number(adv.recoveredAmount || 0);
+          if (outstanding > 0) {
+            outstandingAdvancesMap[adv.customerId] = (outstandingAdvancesMap[adv.customerId] || 0) + outstanding;
+          }
+        }
+
+        // Final calculations per customer
+        for (const custIdStr of Object.keys(recordsMap)) {
+          const custId = Number(custIdStr);
+          const record = recordsMap[custId];
+          
+          const outstandingAdv = outstandingAdvancesMap[custId] || 0;
+          const advanceRecovery = Math.min(outstandingAdv, Math.max(0, record.amount - record.deduction));
+          
+          record.payment = Math.max(0, record.amount - record.deduction - advanceRecovery);
+          record.rate = record.liter > 0 ? (record.amount / record.liter) : 0;
+        }
+
+        // Keep active ones (those who have liters or deductions)
+        this.invoiceRecords = Object.values(recordsMap).filter(r => r.liter > 0 || r.deduction > 0);
+        
+        // Sum totals
+        this.totalLiter = this.invoiceRecords.reduce((sum, r) => sum + r.liter, 0);
+        this.totalAmount = this.invoiceRecords.reduce((sum, r) => sum + r.amount, 0);
+        this.totalDeduction = this.invoiceRecords.reduce((sum, r) => sum + r.deduction, 0);
+        this.totalPayment = this.invoiceRecords.reduce((sum, r) => sum + r.payment, 0);
+        this.totalRate = this.totalLiter > 0 ? (this.totalAmount / this.totalLiter) : 0;
+        
+        this.loadingSummary = false;
       },
-      error: () => (this.loadingSummary = false)
+      error: () => {
+        this.loadingSummary = false;
+      }
     });
   }
 
-  print(): void {
-    window.print();
+  goBack(): void {
+    this.router.navigate(["/dashboard"]);
   }
 }

@@ -12,6 +12,12 @@ import rateChartRoutes from "./routes/rateChartRoutes.js";
 import advanceRoutes from "./routes/advanceRoutes.js";
 import deductionRoutes from "./routes/deductionRoutes.js";
 import feedRoutes from "./routes/feedRoutes.js";
+import milkSaleRoutes from "./routes/milkSaleRoutes.js";
+import expenseRoutes from "./routes/expenseRoutes.js";
+import noticeRoutes from "./routes/noticeRoutes.js";
+import bonusRoutes from "./routes/bonusRoutes.js";
+import dispatchRoutes from "./routes/dispatchRoutes.js";
+import receiveRoutes from "./routes/receiveRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -33,6 +39,12 @@ app.use("/api/rate-charts", rateChartRoutes);
 app.use("/api/advances", advanceRoutes);
 app.use("/api/deductions", deductionRoutes);
 app.use("/api/feed", feedRoutes);
+app.use("/api/milk-sales", milkSaleRoutes);
+app.use("/api/expenses", expenseRoutes);
+app.use("/api/notices", noticeRoutes);
+app.use("/api/bonuses", bonusRoutes);
+app.use("/api/dispatches", dispatchRoutes);
+app.use("/api/receives", receiveRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ message: "Route not found" });
@@ -47,3 +59,4 @@ const start = async () => {
 };
 
 start();
+// SMS key configured

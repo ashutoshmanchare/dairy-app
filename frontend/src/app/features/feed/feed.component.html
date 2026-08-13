@@ -1,129 +1,194 @@
-<section class="page-head">
-  <div>
-    <h1 class="page-title">Cattle Feed Module</h1>
-    <p>Manage feed inventory stock and issues to farmers</p>
+<!-- Teal Header Bar -->
+<div class="amcu-header no-print">
+  <button class="back-btn" type="button" (click)="goBack()">
+    <i class="bi bi-arrow-left"></i>
+  </button>
+  
+  <div class="title-wrap" style="color: white;">
+    <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Foods</h1>
+    <p style="font-size: 0.75rem; margin: 0; opacity: 0.9; text-transform: uppercase; font-weight: 600;">{{ dairyName }}</p>
   </div>
-  <i class="bi bi-bag-check-fill text-teal" style="font-size: 2.2rem;"></i>
-</section>
+  
+  <div class="header-actions d-flex align-items-center gap-3">
+    <!-- Trigger adding stock item -->
+    <button class="btn btn-link p-0 text-white" type="button" (click)="openItemForm()" title="Add Feed Item to Stock">
+      <i class="bi bi-plus-square" style="font-size: 1.2rem;"></i>
+    </button>
+    <!-- Trigger issuing feed -->
+    <button class="btn btn-link p-0 text-white" type="button" (click)="openForm()" title="Issue Feed to Farmer">
+      <i class="bi bi-plus-lg" style="font-size: 1.3rem;"></i>
+    </button>
+    <i class="bi bi-three-dots-vertical"></i>
+  </div>
+</div>
+
+<!-- Date Range Selector Row (Screenshot 4 style) -->
+<div class="no-print" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background-color: #ffffff; border-bottom: 1px solid #e0e0e0; font-size: 0.9rem; font-weight: 500; color: #555555;">
+  <i class="bi bi-calendar-range text-secondary" style="font-size: 1.1rem; color: #666666 !important;"></i>
+  <div style="display: flex; align-items: center; gap: 4px;">
+    <input type="date" [(ngModel)]="startDate" style="border: none; background: none; font-size: 0.85rem; font-weight: 500; color: #555555; outline: none;" />
+    <span>-</span>
+    <input type="date" [(ngModel)]="endDate" style="border: none; background: none; font-size: 0.85rem; font-weight: 500; color: #555555; outline: none;" />
+  </div>
+</div>
 
 <div class="success-toast" *ngIf="msg">
   <span class="check"><i class="bi bi-check-lg"></i></span>
   <span>{{ msg }}</span>
 </div>
 
-<div class="alert alert-danger" *ngIf="errorMsg">
+<div class="alert alert-danger mx-3 my-2" *ngIf="errorMsg">
   <span>{{ errorMsg }}</span>
 </div>
 
-<!-- Sell Feed to Farmer -->
-<section class="dm-card mb-4">
-  <h2 class="section-title">Issue Feed to Farmer</h2>
-  <form [formGroup]="saleForm" (ngSubmit)="submitSale()">
-    <label class="form-label">Search Farmer</label>
-    <input
-      class="form-control mb-2"
-      type="search"
-      placeholder="Type farmer name or code..."
-      [(ngModel)]="customerFilter"
-      [ngModelOptions]="{ standalone: true }"
-    />
-    <select class="form-select mb-3" formControlName="customerId">
-      <option [ngValue]="0">Select Farmer</option>
-      <option *ngFor="let c of filteredCustomers" [ngValue]="c.id">
-        #{{ c.farmerCode }} · {{ c.name }} · {{ c.village }}
-      </option>
-    </select>
-
-    <div class="row g-3 mb-3">
-      <div class="col-6">
-        <label class="form-label">Feed Stock Item</label>
-        <select class="form-select" formControlName="feedItemId">
-          <option [ngValue]="0">Select Item</option>
-          <option *ngFor="let item of feedItems" [ngValue]="item.id">
-            {{ item.name }} (Stock: {{ item.stockQuantity }}{{ item.unit }} · ₹{{ item.price }})
-          </option>
-        </select>
-      </div>
-      <div class="col-6">
-        <label class="form-label">Quantity</label>
-        <input class="form-control" type="number" formControlName="quantity" min="1" />
-      </div>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Sale Date</label>
-      <input class="form-control" type="date" formControlName="saleDate" />
-    </div>
-
-    <button class="btn btn-dairy btn-full" type="submit" [disabled]="savingSale">
-      <span class="spinner" *ngIf="savingSale" style="width:16px;height:16px;border-width:2px;"></span>
-      <i class="bi bi-cart-check" *ngIf="!savingSale"></i>
-      {{ savingSale ? "Processing..." : "Sell & Link Deduction" }}
-    </button>
-  </form>
-</section>
-
-<!-- Add Feed Inventory Stock -->
-<section class="dm-card mb-4">
-  <h2 class="section-title">Add Feed Inventory Item</h2>
-  <form [formGroup]="itemForm" (ngSubmit)="submitItem()">
-    <div class="mb-3">
-      <label class="form-label">Item Brand/Name</label>
-      <input class="form-control" type="text" formControlName="name" placeholder="e.g. Kapila Pashu Ahar Gold" />
-    </div>
-
-    <div class="row g-3 mb-3">
-      <div class="col-4">
-        <label class="form-label">Price (₹)</label>
-        <input class="form-control" type="number" formControlName="price" placeholder="0" />
-      </div>
-      <div class="col-4">
-        <label class="form-label">Stock Qty</label>
-        <input class="form-control" type="number" formControlName="stockQuantity" placeholder="0" />
-      </div>
-      <div class="col-4">
-        <label class="form-label">Stock Unit</label>
-        <select class="form-select" formControlName="unit">
-          <option value="bag">Bags (पोते)</option>
-          <option value="kg">Kilograms (kg)</option>
-          <option value="pkt">Packets</option>
-        </select>
-      </div>
-    </div>
-
-    <button class="btn btn-dairy btn-full" type="submit" [disabled]="savingItem">
-      <span class="spinner" *ngIf="savingItem" style="width:16px;height:16px;border-width:2px;"></span>
-      <i class="bi bi-plus-lg" *ngIf="!savingItem"></i>
-      {{ savingItem ? "Adding..." : "Add to Stock" }}
-    </button>
-  </form>
-</section>
-
-<!-- Feed Sales History -->
-<section>
-  <h2 class="section-title">Feed Sale Records</h2>
-  
+<!-- Foods records list (Screenshot 4 style) -->
+<div style="background-color: #ffffff; min-height: 250px;">
   <div class="list-stack" *ngIf="loading">
     <div class="skeleton skeleton-card" *ngFor="let i of [1, 2]"></div>
   </div>
 
-  <div class="empty-state" *ngIf="!loading && !sales.length">
+  <div class="empty-state py-5 text-center" *ngIf="!loading && !filteredSales.length">
     <i class="bi bi-bag text-muted" style="font-size: 3rem;"></i>
-    <h4>No Feed Sales logged</h4>
-    <p>Sales of cattle feed will be displayed here.</p>
+    <p class="small text-muted mt-2">No Feed Sales logged in this period</p>
   </div>
 
-  <div class="list-stack" *ngIf="!loading && sales.length">
-    <article class="list-item" *ngFor="let row of sales">
-      <div class="avatar bg-teal"><i class="bi bi-bag"></i></div>
-      <div class="list-item-body">
-        <h3 class="list-item-title">{{ row.customerName }} <small class="text-secondary">(#{{ row.farmerCode }})</small></h3>
-        <p class="list-item-sub">{{ row.saleDate | date: 'mediumDate' }} · {{ row.feedItemName }} (Qty: {{ row.quantity }})</p>
-        <div class="list-item-meta mt-1">
-          <span class="text-secondary">Rate: ₹{{ row.rate }}</span>
-          <span class="text-teal">Total Amount: ₹{{ row.totalAmount }}</span>
+  <!-- Replicated logs item list cards -->
+  <div *ngIf="!loading && filteredSales.length">
+    <div class="amcu-list-item" *ngFor="let row of filteredSales; let idx = index" style="background-color: white; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; padding: 12px 16px;">
+      <!-- Stacked Index details (Loop sequence) -->
+      <div class="idx-stack-col" style="display: flex; align-items: center; justify-content: center; width: 40px; margin-right: 12px;">
+        <span class="idx-num" style="font-size: 1.3rem; font-weight: 300; color: #a0a0a0; line-height: 1;">{{ idx + 1 }}</span>
+      </div>
+      
+      <div class="body-col" style="flex: 1;">
+        <p class="name" style="font-size: 1rem; font-weight: 500; color: #333333; margin: 0 0 4px 0; font-family: sans-serif;">{{ row.customerName }}</p>
+        <p class="details" style="font-size: 0.8rem; color: #666666; margin: 0; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+          <span>{{ row.feedItemName }}</span>
+          <span style="color: #999;">{{ row.saleDate | date: 'dd/MM/yyyy' }}</span>
+        </p>
+      </div>
+      
+      <!-- Right side details: amount in green, formula in pink -->
+      <div class="amt-col text-end" style="text-align: right; width: 130px; padding-left: 8px;">
+        <p class="amount m-0 fw-bold" style="font-size: 1.02rem; color: #2a8b82; margin: 0 0 2px 0;">{{ row.totalAmount | number: '1.2-2' }}₹</p>
+        <p class="formula m-0" style="font-size: 0.75rem; color: #e91e63; margin: 0;">{{ row.quantity | number:'1.0-0' }} x {{ row.rate | number:'1.1-1' }} = {{ row.totalAmount | number:'1.2-2' }}₹</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Summary section at the bottom of the list (Screenshot 4 style) -->
+<div class="p-3 bg-light border-top" *ngIf="!loading && sales.length" style="font-family: monospace; font-size: 0.9rem; color: #333333;">
+  <div *ngFor="let item of salesSummary.items" style="display: flex; justify-content: space-between; padding: 4px 8px;">
+    <span>{{ item.name }} [{{ item.quantity | number:'1.0-0' }}]</span>
+    <span>{{ item.amount | number:'1.2-2' }}</span>
+  </div>
+  <div style="border-top: 1px dashed #ccc; margin: 8px 0;"></div>
+  <div style="display: flex; justify-content: space-between; padding: 4px 8px; font-weight: bold; font-size: 0.95rem;">
+    <span>Total [{{ salesSummary.totalQuantity | number:'1.0-0' }}]</span>
+    <span>{{ salesSummary.totalAmount | number:'1.2-2' }}</span>
+  </div>
+</div>
+
+<!-- MODAL SHEET 1: ISSUE CATTLE FEED FORM -->
+<div class="modal-sheet no-print" *ngIf="showForm" (click)="closeForm()" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: flex-end; justify-content: center;">
+  <div class="modal-sheet-card" (click)="$event.stopPropagation()" style="background: white; width: 100%; max-width: 500px; border-radius: 16px 16px 0 0; padding: 20px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1);">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h2 class="section-title mb-0" style="font-size: 1.1rem; font-weight: 700; color: #2f9f95;">Issue Feed to Farmer</h2>
+      <button class="btn btn-sm btn-light btn-icon" type="button" (click)="closeForm()" aria-label="Close" style="border: none; background: none; font-size: 1.3rem;">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form [formGroup]="saleForm" (ngSubmit)="submitSale()">
+      <div class="mb-3">
+        <label class="form-label small fw-bold">Search Farmer (शेतकरी)</label>
+        <input
+          class="form-control mb-2"
+          type="search"
+          placeholder="Type name or code..."
+          [(ngModel)]="customerFilter"
+          [ngModelOptions]="{ standalone: true }"
+          style="font-size: 0.85rem;"
+        />
+        <select class="form-select" formControlName="customerId" style="font-size: 0.85rem;">
+          <option [ngValue]="0">Select Farmer</option>
+          <option *ngFor="let c of filteredCustomers" [ngValue]="c.id">
+            #{{ c.farmerCode }} · {{ c.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="form-label small fw-bold">Feed Item (खाद्य)</label>
+          <select class="form-select" formControlName="feedItemId" style="font-size: 0.85rem;">
+            <option [ngValue]="0">Select Item</option>
+            <option *ngFor="let item of feedItems" [ngValue]="item.id">
+              {{ item.name }} (₹{{ item.price }})
+            </option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-bold">Quantity (संख्या)</label>
+          <input class="form-control" type="number" formControlName="quantity" min="1" style="font-size: 0.85rem;" />
         </div>
       </div>
-    </article>
+
+      <div class="mb-4">
+        <label class="form-label small fw-bold">Sale Date (तारीख)</label>
+        <input class="form-control" type="date" formControlName="saleDate" style="font-size: 0.85rem;" />
+      </div>
+
+      <button class="btn btn-dairy w-100 py-2.5 fw-bold" type="submit" [disabled]="savingSale" style="background-color: #2f9f95; color: white;">
+        <span class="spinner" *ngIf="savingSale" style="width:14px;height:14px;border-width:2px;margin:0;border-color:white;"></span>
+        <i class="bi bi-cart-check" *ngIf="!savingSale"></i>
+        {{ savingSale ? "Processing..." : "ISSUE & SAVE" }}
+      </button>
+    </form>
   </div>
-</section>
+</div>
+
+<!-- MODAL SHEET 2: ADD INVENTORY FEED ITEM FORM -->
+<div class="modal-sheet no-print" *ngIf="showItemForm" (click)="closeItemForm()" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: flex-end; justify-content: center;">
+  <div class="modal-sheet-card" (click)="$event.stopPropagation()" style="background: white; width: 100%; max-width: 500px; border-radius: 16px 16px 0 0; padding: 20px; box-shadow: 0 -4px 10px rgba(0,0,0,0.1);">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h2 class="section-title mb-0" style="font-size: 1.1rem; font-weight: 700; color: #2f9f95;">Add Feed Inventory Item</h2>
+      <button class="btn btn-sm btn-light btn-icon" type="button" (click)="closeItemForm()" aria-label="Close" style="border: none; background: none; font-size: 1.3rem;">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <form [formGroup]="itemForm" (ngSubmit)="submitItem()">
+      <div class="mb-3">
+        <label class="form-label small fw-bold">Item Brand/Name (नाव)</label>
+        <input class="form-control" type="text" formControlName="name" placeholder="e.g. Kapila Pashu Ahar Gold" style="font-size: 0.85rem;" />
+      </div>
+
+      <div class="row g-2 mb-4">
+        <div class="col-4">
+          <label class="form-label small fw-bold">Price (₹)</label>
+          <input class="form-control" type="number" formControlName="price" placeholder="0" style="font-size: 0.85rem;" />
+        </div>
+        <div class="col-4">
+          <label class="form-label small fw-bold">Stock Qty</label>
+          <input class="form-control" type="number" formControlName="stockQuantity" placeholder="0" style="font-size: 0.85rem;" />
+        </div>
+        <div class="col-4">
+          <label class="form-label small fw-bold">Unit</label>
+          <select class="form-select" formControlName="unit" style="font-size: 0.85rem;">
+            <option value="bag">Bags (पोते)</option>
+            <option value="kg">kg</option>
+            <option value="pkt">Packets</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-dairy w-100 py-2.5 fw-bold" type="submit" [disabled]="savingItem" style="background-color: #2f9f95; color: white;">
+        <span class="spinner" *ngIf="savingItem" style="width:14px;height:14px;border-width:2px;margin:0;border-color:white;"></span>
+        <i class="bi bi-plus-lg" *ngIf="!savingItem"></i>
+        {{ savingItem ? "Adding..." : "ADD TO STOCK" }}
+      </button>
+    </form>
+  </div>
+</div>

@@ -1,30 +1,32 @@
 <!-- Teal Header Bar -->
 <div class="amcu-header no-print">
-  <button class="back-btn" (click)="goBack()">
+  <button class="back-btn" type="button" (click)="goBack()">
     <i class="bi bi-arrow-left"></i>
   </button>
   
-  <div class="title-wrap">
-    <h1 *ngIf="!showAddForm">Collections</h1>
-    <h1 *ngIf="showAddForm">Add Collection</h1>
-    <p>{{ translation.t('brand_title') }} Center</p>
+  <div class="title-wrap" style="color: white;">
+    <h1 *ngIf="!showAddForm" style="font-size: 1.25rem; font-weight: 700; margin: 0;">Collections</h1>
+    <p *ngIf="!showAddForm" style="font-size: 0.75rem; margin: 0; opacity: 0.9; text-transform: uppercase; font-weight: 600;">{{ dairyName }}</p>
+    
+    <h1 *ngIf="showAddForm" style="font-size: 1.25rem; font-weight: 700; margin: 0;">Add Collection</h1>
+    <p *ngIf="showAddForm" style="font-size: 0.75rem; margin: 0; opacity: 0.9; text-transform: uppercase; font-weight: 600;">{{ dairyName }}</p>
   </div>
   
-  <div class="header-actions d-flex align-items-center gap-2">
-    <!-- Quick Add Customer / Farmer Trigger Button -->
-    <button class="btn btn-link p-0 text-white" type="button" (click)="showQuickAddCustomer = true" title="Quick Add Farmer">
-      <i class="bi bi-plus" style="font-size: 1.8rem; line-height: 1;"></i>
+  <div class="header-actions d-flex align-items-center gap-3">
+    <!-- Sound toggle icon when in add form -->
+    <button *ngIf="showAddForm" class="btn btn-link p-0 text-white" type="button" title="Voice Announcement">
+      <i class="bi bi-volume-up-fill" style="font-size: 1.3rem;"></i>
+    </button>
+    <!-- Plus button when in list mode -->
+    <button *ngIf="!showAddForm" class="btn btn-link p-0 text-white" type="button" (click)="showAddForm = true" title="Add Collection">
+      <i class="bi bi-plus-lg" style="font-size: 1.3rem;"></i>
     </button>
     <i class="bi bi-three-dots-vertical"></i>
   </div>
 </div>
 
-<!-- Sync & Status Info Bar / Shift starts -->
-<div class="amcu-banner no-print">
-  <span *ngIf="isOnline"><i class="bi bi-wifi text-success me-1"></i> Online</span>
-  <span *ngIf="!isOnline"><i class="bi bi-wifi-off text-warning me-1"></i> Offline Mode</span>
-  <span class="mx-2">·</span>
-  <!-- Dynamically show shift starts based on active filter or form -->
+<!-- Shift starts banner -->
+<div class="amcu-banner no-print" style="background-color: #f5f5f5; color: #333333; padding: 8px 12px; font-size: 0.88rem; font-weight: 500; text-align: center; border-bottom: 1px solid #e0e0e0;">
   <span *ngIf="!showAddForm">
     {{ listShiftFilter === 'morning' ? 'Morning Shift Starts at 06:00 AM' : 'Evening Shift Starts at 04:00 PM' }}
   </span>
@@ -82,32 +84,32 @@
 <ng-container *ngIf="!showAddForm">
   
   <!-- Interactive Date Picker and Morn/Even/Cow/Buf Filter Toggles -->
-  <div class="list-filter-row no-print">
-    <div class="date-picker-wrap">
-      <i class="bi bi-calendar3 text-secondary"></i>
+  <div class="list-filter-row no-print" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background-color: white; border-bottom: 1px solid #e0e0e0; margin-bottom: 0;">
+    <div class="date-picker-wrap" style="display: flex; align-items: center; gap: 8px;">
+      <i class="bi bi-calendar-event text-secondary" style="font-size: 1.15rem; color: #555555 !important;"></i>
       <!-- Bind collection form entryDate value for unified date filtering -->
-      <input type="date" [formControl]="$any(form.get('entryDate'))" />
+      <input type="date" [formControl]="$any(form.get('entryDate'))" style="border: none; background: none; font-size: 0.95rem; font-weight: 500; color: #333333; outline: none; width: 125px;" />
     </div>
     
-    <div class="list-filter-toggles">
+    <div class="list-filter-toggles" style="display: flex; align-items: center; gap: 14px;">
       <!-- Morn/Even Shift Filters -->
-      <button type="button" class="list-filter-btn" [class.active]="listShiftFilter === 'morning'" (click)="listShiftFilter = 'morning'">
-        <span class="emoji">☀️</span>
-        <span class="label">Morn</span>
+      <button type="button" class="list-filter-btn" [class.active]="listShiftFilter === 'morning'" (click)="listShiftFilter = 'morning'" style="border: none; background: none; display: flex; flex-direction: column; align-items: center; padding: 0; cursor: pointer; outline: none;">
+        <span class="emoji" style="width: 32px; height: 32px; display: grid; place-items: center; font-size: 1.3rem; border-radius: 50%; background-color: #f5f5f5;">🌞</span>
+        <span class="label" style="font-size: 0.65rem; font-weight: 500; color: #666; margin-top: 2px;">Morn</span>
       </button>
-      <button type="button" class="list-filter-btn" [class.active]="listShiftFilter === 'evening'" (click)="listShiftFilter = 'evening'">
-        <span class="emoji">🌙</span>
-        <span class="label">Even</span>
+      <button type="button" class="list-filter-btn" [class.active]="listShiftFilter === 'evening'" (click)="listShiftFilter = 'evening'" style="border: none; background: none; display: flex; flex-direction: column; align-items: center; padding: 0; cursor: pointer; outline: none;">
+        <span class="emoji" style="width: 32px; height: 32px; display: grid; place-items: center; font-size: 1.3rem; border-radius: 50%; background-color: #f5f5f5;">🌚</span>
+        <span class="label" style="font-size: 0.65rem; font-weight: 500; color: #666; margin-top: 2px;">Even</span>
       </button>
       
       <!-- Cow/Buf Animal Filters -->
-      <button type="button" class="list-filter-btn" [class.active]="listAnimalFilter === 'cow'" (click)="listAnimalFilter = 'cow'">
-        <span class="emoji">🐄</span>
-        <span class="label">Cow</span>
+      <button type="button" class="list-filter-btn" [class.active]="listAnimalFilter === 'cow'" (click)="listAnimalFilter = 'cow'" style="border: none; background: none; display: flex; flex-direction: column; align-items: center; padding: 0; cursor: pointer; outline: none;">
+        <span class="emoji" style="width: 32px; height: 32px; display: grid; place-items: center; font-size: 1.3rem; border-radius: 50%; background-color: #f5f5f5;">🐄</span>
+        <span class="label" style="font-size: 0.65rem; font-weight: 500; color: #666; margin-top: 2px;">Cow</span>
       </button>
-      <button type="button" class="list-filter-btn" [class.active]="listAnimalFilter === 'buffalo'" (click)="listAnimalFilter = 'buffalo'">
-        <span class="emoji">🐃</span>
-        <span class="label">Buffalo</span>
+      <button type="button" class="list-filter-btn" [class.active]="listAnimalFilter === 'buffalo'" (click)="listAnimalFilter = 'buffalo'" style="border: none; background: none; display: flex; flex-direction: column; align-items: center; padding: 0; cursor: pointer; outline: none;">
+        <span class="emoji" style="width: 32px; height: 32px; display: grid; place-items: center; font-size: 1.3rem; border-radius: 50%; background-color: #f5f5f5;">🐃</span>
+        <span class="label" style="font-size: 0.65rem; font-weight: 500; color: #666; margin-top: 2px;">Buffalo</span>
       </button>
     </div>
   </div>
@@ -125,27 +127,26 @@
 
     <!-- Replicated logs item list cards -->
     <div *ngIf="!loading && filteredCollections.length">
-      <div class="amcu-list-item" *ngFor="let row of filteredCollections; let idx = index">
-        <!-- Stacked Index details (Loop sequence, shift icon, animal icon) -->
-        <div class="idx-stack-col">
-          <span class="idx-num">{{ idx + 1 }}</span>
-          <span class="idx-icon">{{ row.shift === 'morning' ? '☀️' : '🌙' }}</span>
+      <div class="amcu-list-item" *ngFor="let row of filteredCollections; let idx = index" style="background-color: white; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; padding: 12px 16px;">
+        <!-- Stacked Index details (Loop sequence, shift icon) -->
+        <div class="idx-stack-col" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 45px; border-right: none; margin-right: 12px; padding-right: 0;">
+          <span class="idx-num" style="font-size: 1.3rem; font-weight: 300; color: #a0a0a0; line-height: 1;">{{ idx + 1 }}</span>
+          <span class="idx-icon" style="font-size: 0.95rem; margin-top: 4px;">{{ row.shift === 'morning' ? '☀️' : '🌙' }}</span>
         </div>
         
-        <div class="body-col">
-          <p class="name">{{ row.customerName }} <small class="text-secondary">(#{{ row.farmerCode }})</small></p>
-          <p class="details">
-            <!-- RenderCow/Buf indicator text next to parameters -->
-            <span>{{ row.animalType === 'cow' ? '🐄 Cow' : '🐃 Buf' }}</span>
-            <span class="mx-1">|</span>
+        <div class="body-col" style="flex: 1;">
+          <p class="name" style="font-size: 1rem; font-weight: 500; color: #333333; margin: 0 0 4px 0; font-family: sans-serif;">{{ row.customerName }}</p>
+          <p class="details" style="font-size: 0.8rem; color: #666666; margin: 0; display: flex; align-items: center; gap: 4px;">
+            <!-- Cow/Buf animal emoji and label -->
+            <span style="font-size: 0.95rem; margin-right: 2px;">{{ row.animalType === 'cow' ? '🐄' : '🐃' }}</span>
             <span>FAT: {{ row.fat | number:'1.1-1' }} | SNF: {{ row.snf | number:'1.1-1' }}</span>
           </p>
         </div>
         
         <!-- Right side details: amount in green, formula in pink -->
-        <div class="amt-col text-end">
-          <p class="amount m-0 text-success fw-bold">₹{{ row.totalAmount | number: '1.2-2' }}</p>
-          <p class="formula m-0 text-danger small font-monospace">{{ row.rate | number: '1.2-2' }} x {{ row.quantity | number: '1.2-2' }}l</p>
+        <div class="amt-col text-end" style="text-align: right; width: 120px;">
+          <p class="amount m-0 fw-bold" style="font-size: 1.05rem; color: #2a8b82; margin: 0 0 2px 0;">{{ row.totalAmount | number: '1.2-2' }}₹</p>
+          <p class="formula m-0" style="font-size: 0.78rem; color: #e91e63; margin: 0;">{{ row.rate | number: '1.2-2' }} x {{ row.quantity | number: '1.2-2' }}l</p>
         </div>
       </div>
     </div>
@@ -190,76 +191,66 @@
 <!-- SCREEN 2: HIGH-SPEED FORM COLLECTION INPUT VIEW -->
 <ng-container *ngIf="showAddForm">
   
-  <section class="p-3">
+  <section class="p-0">
     <form [formGroup]="form" (ngSubmit)="submit()" (keydown.enter)="$event.preventDefault()">
       
-      <!-- Static parameters toggles -->
-      <div class="amcu-filter-bar no-print mb-3">
-        <div class="d-flex align-items-center gap-1">
-          <i class="bi bi-calendar3 text-secondary"></i>
-          <input class="amcu-date-input" type="date" formControlName="entryDate" />
+      <!-- Interactive Date Picker and Morn/Even/Cow/Buf Filter Toggles -->
+      <div class="amcu-filter-bar no-print" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background-color: white; border-bottom: 1px solid #e0e0e0; margin-bottom: 0;">
+        <div class="date-picker-wrap" style="display: flex; align-items: center; gap: 8px;">
+          <i class="bi bi-calendar-event text-secondary" style="font-size: 1.15rem; color: #555555 !important;"></i>
+          <input class="amcu-date-input" type="date" formControlName="entryDate" style="border: none; background: none; font-size: 0.95rem; font-weight: 500; color: #333333; outline: none; width: 125px;" />
         </div>
-        <div class="amcu-toggles">
-          <div class="amcu-toggle-group">
-            <button type="button" class="amcu-toggle-btn" [class.active]="form.get('shift')?.value === 'morning'" (click)="form.patchValue({ shift: 'morning' })">
-              <span>Morn</span>
-            </button>
-            <button type="button" class="amcu-toggle-btn" [class.active]="form.get('shift')?.value === 'evening'" (click)="form.patchValue({ shift: 'evening' })">
-              <span>Even</span>
-            </button>
-          </div>
-          <div class="amcu-toggle-group">
-            <button type="button" class="amcu-toggle-btn" [class.active]="form.get('animalType')?.value === 'cow'" (click)="form.patchValue({ animalType: 'cow' })">
-              <span>Cow</span>
-            </button>
-            <button type="button" class="amcu-toggle-btn" [class.active]="form.get('animalType')?.value === 'buffalo'" (click)="form.patchValue({ animalType: 'buffalo' })">
-              <span>Buf</span>
-            </button>
-          </div>
+        
+        <div class="list-filter-toggles" style="display: flex; align-items: center; gap: 14px;">
+          <!-- Morn/Even Shift Filters -->
+          <button type="button" class="list-filter-btn" [class.active]="form.get('shift')?.value === 'morning'" (click)="form.patchValue({ shift: 'morning' })" style="border: none; background: none; display: flex; flex-direction: column; align-items: center; padding: 0; cursor: pointer; outline: none;">
+            <span class="emoji" style="width: 32px; height: 32px; display: grid; place-items: center; font-size: 1.3rem; border-radius: 8px; background-color: #f5f5f5;">🌞</span>
+            <span class="label" style="font-size: 0.65rem; font-weight: 500; color: #666; margin-top: 2px;">Morn</span>
+          </button>
+          <button type="button" class="list-filter-btn" [class.active]="form.get('shift')?.value === 'evening'" (click)="form.patchValue({ shift: 'evening' })" style="border: none; background: none; display: flex; flex-direction: column; align-items: center; padding: 0; cursor: pointer; outline: none;">
+            <span class="emoji" style="width: 32px; height: 32px; display: grid; place-items: center; font-size: 1.3rem; border-radius: 8px; background-color: #f5f5f5;">🌚</span>
+            <span class="label" style="font-size: 0.65rem; font-weight: 500; color: #666; margin-top: 2px;">Even</span>
+          </button>
+          
+          <!-- Cow/Buf Animal Filters -->
+          <button type="button" class="list-filter-btn" [class.active]="form.get('animalType')?.value === 'cow'" (click)="form.patchValue({ animalType: 'cow' })" style="border: none; background: none; display: flex; flex-direction: column; align-items: center; padding: 0; cursor: pointer; outline: none;">
+            <span class="emoji" style="width: 32px; height: 32px; display: grid; place-items: center; font-size: 1.3rem; border-radius: 8px; background-color: #f5f5f5;">🐄</span>
+            <span class="label" style="font-size: 0.65rem; font-weight: 500; color: #666; margin-top: 2px;">Cow</span>
+          </button>
+          <button type="button" class="list-filter-btn" [class.active]="form.get('animalType')?.value === 'buffalo'" (click)="form.patchValue({ animalType: 'buffalo' })" style="border: none; background: none; display: flex; flex-direction: column; align-items: center; padding: 0; cursor: pointer; outline: none;">
+            <span class="emoji" style="width: 32px; height: 32px; display: grid; place-items: center; font-size: 1.3rem; border-radius: 8px; background-color: #f5f5f5;">🐃</span>
+            <span class="label" style="font-size: 0.65rem; font-weight: 500; color: #666; margin-top: 2px;">Buffalo</span>
+          </button>
         </div>
       </div>
 
       <!-- Farmer Selection display card -->
-      <div class="amcu-farmer-card mb-3">
-        <div class="code-col">
+      <div class="amcu-farmer-card" style="background: #ffffff; border-bottom: 1px solid #e0e0e0; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 0;">
+        <div class="code-col" style="width: 50px;">
           <input
             #farmerCodeInput
-            class="code-input text-center fw-bold"
+            class="code-input text-center"
             [class.active-input-field]="activeField === 'farmerCode'"
             (focus)="setActiveField('farmerCode')"
             type="text"
             formControlName="farmerCode"
-            placeholder="Code"
+            placeholder="0"
             (input)="onFarmerCodeChange(farmerCodeInput.value)"
             autocomplete="off"
+            style="border: none; width: 100%; font-size: 1.8rem; font-weight: 300; text-align: left; color: #333333; outline: none; padding: 0;"
           />
         </div>
-        <div class="info-col">
-          <p class="name" *ngIf="selectedCustomerName">{{ selectedCustomerName }}</p>
-          <p class="name text-muted" *ngIf="!selectedCustomerName">Enter Farmer Code</p>
-          <p class="mobile" *ngIf="selectedCustomerMobile">{{ getMaskedMobile(selectedCustomerMobile) }}</p>
-        </div>
-        <div class="search-col">
-          <div class="dropdown d-inline">
-            <button class="btn btn-link p-0 text-secondary" type="button" id="farmerSearchDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="bi bi-search"></i>
-            </button>
-            <div class="dropdown-menu dropdown-menu-end p-2 shadow-lg" aria-labelledby="farmerSearchDropdown" style="width: 260px; max-height: 250px; overflow-y: auto;">
-              <select class="form-select form-select-sm" formControlName="customerId" (change)="onCustomerSelectChange($event)">
-                <option [ngValue]="0">Select Farmer</option>
-                <option *ngFor="let c of customers" [ngValue]="c.id">
-                  #{{ c.farmerCode }} · {{ c.name }}
-                </option>
-              </select>
-            </div>
-          </div>
+        <div class="info-col" style="flex: 1; padding-left: 12px; border-left: none;">
+          <p class="name" *ngIf="selectedCustomerName" style="font-size: 1.1rem; font-weight: 400; color: #333333; margin: 0 0 2px 0;">{{ selectedCustomerName }}</p>
+          <p class="name text-muted" *ngIf="!selectedCustomerName" style="font-size: 1.1rem; font-weight: 300; margin: 0 0 2px 0;">Enter Farmer Code</p>
+          <p class="mobile" *ngIf="selectedCustomerMobile" style="font-size: 0.82rem; color: #888888; margin: 0; font-family: sans-serif;">{{ getMaskedMobile(selectedCustomerMobile) }}</p>
         </div>
       </div>
 
       <!-- 4-Column input parameters grid -->
-      <div class="amcu-grid-inputs mb-3">
-        <div class="amcu-input-col">
-          <span class="col-label">Liter</span>
+      <div class="amcu-grid-inputs" style="display: grid; grid-template-columns: repeat(4, 1fr); background: #ffffff; border-bottom: 1px solid #e0e0e0; margin-bottom: 0;">
+        <div class="amcu-input-col" style="border-right: 1px solid #e0e0e0; padding: 12px 6px; text-align: center;">
+          <span class="col-label" style="display: block; font-size: 0.8rem; color: #888888; font-weight: 400; margin-bottom: 6px;">Liter</span>
           <input 
             type="number" 
             step="0.01" 
@@ -267,11 +258,12 @@
             (focus)="setActiveField('quantity')" 
             [class.active-input-field]="activeField === 'quantity'" 
             class="col-input text-center" 
-            placeholder="0.0" 
+            placeholder="0" 
+            style="border: none; width: 100%; font-size: 1.4rem; font-weight: 400; text-align: center; color: #333333; outline: none; padding: 0;"
           />
         </div>
-        <div class="amcu-input-col">
-          <span class="col-label">FAT</span>
+        <div class="amcu-input-col" style="border-right: 1px solid #e0e0e0; padding: 12px 6px; text-align: center;">
+          <span class="col-label" style="display: block; font-size: 0.8rem; color: #888888; font-weight: 400; margin-bottom: 6px;">FAT</span>
           <input 
             type="number" 
             step="0.1" 
@@ -280,10 +272,11 @@
             [class.active-input-field]="activeField === 'fat'" 
             class="col-input text-center" 
             placeholder="0.0" 
+            style="border: none; width: 100%; font-size: 1.4rem; font-weight: 400; text-align: center; color: #333333; outline: none; padding: 0;"
           />
         </div>
-        <div class="amcu-input-col">
-          <span class="col-label">SNF</span>
+        <div class="amcu-input-col" style="border-right: 1px solid #e0e0e0; padding: 12px 6px; text-align: center;">
+          <span class="col-label" style="display: block; font-size: 0.8rem; color: #888888; font-weight: 400; margin-bottom: 6px;">SNF</span>
           <input 
             type="number" 
             step="0.1" 
@@ -292,61 +285,68 @@
             [class.active-input-field]="activeField === 'snf'" 
             class="col-input text-center" 
             placeholder="0.0" 
+            style="border: none; width: 100%; font-size: 1.4rem; font-weight: 400; text-align: center; color: #333333; outline: none; padding: 0;"
           />
         </div>
-        <div class="amcu-input-col">
-          <span class="col-label text-success">Rate</span>
-          <div class="col-value text-success font-monospace">₹{{ calculatedRate | number: '1.2-2' }}</div>
+        <div class="amcu-input-col" style="padding: 12px 6px; text-align: center;">
+          <span class="col-label" style="display: block; font-size: 0.8rem; color: #2f9f95; font-weight: 500; margin-bottom: 6px;">Rate</span>
+          <div class="col-value text-teal font-monospace" style="font-size: 1.4rem; font-weight: 500; color: #2f9f95; text-align: center; padding: 0; line-height: 1.2;">{{ calculatedRate | number: '1.2-2' }}</div>
         </div>
       </div>
 
-      <!-- Yesterday stats check bar -->
-      <div class="amcu-comparison-bar font-monospace mb-3" *ngIf="selectedCustomerName && yesterdayQty > 0">
-        <span>Yesterday (काल):</span>
-        <span>{{ yesterdayQty | number: '1.2-2' }} L · ₹{{ yesterdayRate | number: '1.2-2' }} / L</span>
+      <!-- Rate chart banner -->
+      <div class="rate-chart-banner" style="background-color: #ffffff; border-bottom: 1px solid #e0e0e0; padding: 8px 12px; font-size: 0.82rem; color: #555555; text-align: center; font-weight: 500;">
+        Primary Rate Chart ({{ calculatedRate | number: '1.2-2' }}) = {{ calculatedRate | number: '1.2-2' }}
       </div>
 
-      <!-- Actions bottom split row -->
-      <div class="amcu-footer-actions no-print mb-3">
-        <button type="button" class="amcu-action-btn reset-btn" (click)="resetForm()">
-          <i class="bi bi-arrow-counterclockwise"></i> RESET
+      <!-- Yesterday comparison bar -->
+      <div class="amcu-comparison-bar font-monospace" style="display: flex; justify-content: space-between; padding: 8px 24px; background-color: #ffffff; border-bottom: 1px solid #e0e0e0; font-size: 0.8rem; color: #888888;">
+        <span>{{ getYesterdayDateString() }}</span>
+        <span>{{ yesterdayQty > 0 ? (yesterdayQty | number: '1.2-2') : '-' }}</span>
+        <span>{{ yesterdayRate > 0 ? (yesterdayRate | number: '1.2-2') : '-' }}</span>
+      </div>
+
+      <!-- Session collections log list inside Add Collection Screen (Screenshot 2) -->
+      <div class="session-entries-list" style="max-height: 220px; overflow-y: auto; background-color: #ffffff;">
+        <div class="empty-state py-3 text-center" *ngIf="!filteredCollections.length">
+          <p class="small text-muted m-0">No entries recorded in this shift yet</p>
+        </div>
+        <div *ngIf="filteredCollections.length">
+          <div class="amcu-list-item" *ngFor="let row of filteredCollections; let idx = index" style="background-color: white; border-bottom: 1px solid #f2f2f2; display: flex; align-items: center; padding: 10px 16px;">
+            <!-- Stacked Index details -->
+            <div class="idx-stack-col" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 45px; margin-right: 12px;">
+              <span class="idx-num" style="font-size: 1.25rem; font-weight: 300; color: #a0a0a0; line-height: 1;">{{ row.farmerCode }}</span>
+              <span class="idx-icon" style="font-size: 0.85rem; margin-top: 2px;">{{ row.shift === 'morning' ? '☀️' : '🌙' }}</span>
+            </div>
+            
+            <div class="body-col" style="flex: 1;">
+              <p class="name" style="font-size: 0.95rem; font-weight: 500; color: #333333; margin: 0 0 2px 0;">{{ row.customerName }}</p>
+              <p class="details" style="font-size: 0.78rem; color: #666666; margin: 0; display: flex; align-items: center; gap: 4px;">
+                <span style="font-size: 0.9rem; margin-right: 2px;">{{ row.animalType === 'cow' ? '🐄' : '🐃' }}</span>
+                <span>FAT: {{ row.fat | number:'1.1-1' }} | SNF: {{ row.snf | number:'1.1-1' }}</span>
+              </p>
+            </div>
+            
+            <!-- Right side details: amount and formula -->
+            <div class="amt-col text-end" style="text-align: right; width: 120px;">
+              <p class="amount m-0 fw-bold" style="font-size: 0.98rem; color: #2a8b82; margin: 0 0 2px 0;">{{ row.totalAmount | number: '1.2-2' }}₹</p>
+              <p class="formula m-0" style="font-size: 0.75rem; color: #e91e63; margin: 0;">{{ row.rate | number: '1.2-2' }} x {{ row.quantity | number: '1.2-2' }}l</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- Actions bottom split row (Screenshot 2 style) -->
+      <div class="amcu-footer-actions no-print" style="display: flex; width: 100%; border-top: 1px solid #e0e0e0; margin-top: 0; position: sticky; bottom: 0; z-index: 100;">
+        <button type="button" class="amcu-action-btn reset-btn" (click)="resetForm()" style="flex: 4; background-color: #cbd5e1; color: #333333; border: none; height: 52px; font-weight: 600; font-size: 1rem; border-radius: 0;">
+          RESET
         </button>
-        <button type="submit" class="amcu-action-btn save-print-btn" [disabled]="saving">
-          <i class="bi bi-printer-fill" *ngIf="!saving"></i>
-          <span class="spinner" *ngIf="saving" style="width:14px;height:14px;border-width:2px;margin:0;"></span>
+        <button type="submit" class="amcu-action-btn save-print-btn" [disabled]="saving" style="flex: 6; background-color: #e91e63; color: #ffffff; border: none; height: 52px; font-weight: 600; font-size: 1rem; border-radius: 0;">
+          <span class="spinner" *ngIf="saving" style="width:14px;height:14px;border-width:2px;margin:0;border-color:white;"></span>
           {{ saving ? "SAVING..." : "SAVE & PRINT" }}
         </button>
-      </div>
-
-      <!-- Keypad touchscreen panel -->
-      <div class="numeric-keypad-container no-print">
-        <div class="keypad-header mb-2 d-flex justify-content-between small">
-          <span class="fw-bold"><i class="bi bi-keyboard-fill text-teal me-1"></i> Quick Input Keypad</span>
-          <span class="badge bg-teal text-white">{{ activeField | uppercase }} ACTIVE</span>
-        </div>
-        <div class="numeric-keypad">
-          <button type="button" class="keypad-btn" (click)="onKeypadClick('7')">7</button>
-          <button type="button" class="keypad-btn" (click)="onKeypadClick('8')">8</button>
-          <button type="button" class="keypad-btn" (click)="onKeypadClick('9')">9</button>
-          <button type="button" class="keypad-btn action-btn" (click)="keypadBackspace()"><i class="bi bi-backspace-fill"></i></button>
-
-          <button type="button" class="keypad-btn" (click)="onKeypadClick('4')">4</button>
-          <button type="button" class="keypad-btn" (click)="onKeypadClick('5')">5</button>
-          <button type="button" class="keypad-btn" (click)="onKeypadClick('6')">6</button>
-          <button type="button" class="keypad-btn action-btn text-teal" (click)="keypadNext()" style="font-size: 0.85rem;">NEXT</button>
-
-          <button type="button" class="keypad-btn" (click)="onKeypadClick('1')">1</button>
-          <button type="button" class="keypad-btn" (click)="onKeypadClick('2')">2</button>
-          <button type="button" class="keypad-btn" (click)="onKeypadClick('3')">3</button>
-          <button type="button" class="keypad-btn" (click)="onKeypadClick('.')">.</button>
-
-          <button type="button" class="keypad-btn" (click)="onKeypadClick('0')">0</button>
-          <button type="submit" class="keypad-btn save-btn fw-bold" [disabled]="saving">
-            <i class="bi bi-printer-fill me-1" *ngIf="!saving"></i>
-            <span class="spinner" *ngIf="saving" style="width:12px;height:12px;border-width:2px;margin:0;"></span>
-            SAVE
-          </button>
-        </div>
       </div>
 
     </form>

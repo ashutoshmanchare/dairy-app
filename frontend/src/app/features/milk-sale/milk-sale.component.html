@@ -1,0 +1,138 @@
+<!-- Teal Header Bar -->
+<div class="amcu-header no-print">
+  <button class="back-btn" type="button" (click)="goBack()">
+    <i class="bi bi-arrow-left"></i>
+  </button>
+  <div class="title-wrap" style="color: white;">
+    <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Milk Sale</h1>
+    <p style="font-size: 0.75rem; margin: 0; opacity: 0.9; text-transform: uppercase; font-weight: 600;">श्री ढोकेश्वर दूध संकलन केंद्र</p>
+  </div>
+  <div class="header-actions">
+    <i class="bi bi-cup-straw text-white" style="font-size: 1.4rem;"></i>
+  </div>
+</div>
+
+<div class="success-toast" *ngIf="msg">
+  <span class="check"><i class="bi bi-check-lg"></i></span>
+  <span>{{ msg }}</span>
+</div>
+
+<div class="alert alert-danger mx-3 my-2" *ngIf="errorMsg" style="padding: 10px 14px; border-radius: 4px; font-size: 0.9rem;">
+  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+  <span>{{ errorMsg }}</span>
+</div>
+
+<!-- Record Milk Sale Form -->
+<section class="dm-card mb-4 mt-3">
+  <h2 class="section-title">Record Milk Sale</h2>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    
+    <div class="mb-3">
+      <label class="form-label">Buyer Name (खरेदीदार)</label>
+      <input 
+        class="form-control" 
+        [class.is-invalid]="form.get('buyerName')?.touched && form.get('buyerName')?.invalid"
+        type="text" 
+        formControlName="buyerName" 
+        placeholder="e.g. Mahanand Dairy / Local Customer" 
+      />
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        <label class="form-label">Date</label>
+        <input class="form-control" type="date" formControlName="saleDate" />
+      </div>
+      <div class="col-6">
+        <label class="form-label">Shift</label>
+        <select class="form-select" formControlName="shift">
+          <option value="morning">Morning (🌞)</option>
+          <option value="evening">Evening (🌚)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        <label class="form-label">Animal Type</label>
+        <select class="form-select" formControlName="animalType">
+          <option value="cow">Cow (🐄)</option>
+          <option value="buffalo">Buffalo (🐃)</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label">Rate (₹/L)</label>
+        <input class="form-control" type="number" step="0.01" formControlName="rate" placeholder="0.00" />
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-6">
+        <label class="form-label">Quantity (Liters)</label>
+        <input class="form-control" type="number" step="0.01" formControlName="quantity" placeholder="0.00" />
+      </div>
+      <div class="col-6">
+        <label class="form-label">Total Amount</label>
+        <div class="form-control bg-light fw-bold text-teal" style="font-size: 1.1rem; border: none; padding-top: 6px;">
+          ₹{{ calculatedTotal | number:'1.2-2' }}
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-dairy btn-full" type="submit" [disabled]="saving">
+      <span class="spinner" *ngIf="saving" style="width:16px;height:16px;border-width:2px;"></span>
+      <i class="bi bi-save" *ngIf="!saving"></i>
+      {{ saving ? "Saving..." : "Save Sale Entry" }}
+    </button>
+  </form>
+</section>
+
+<!-- Sales History -->
+<section class="mb-5">
+  <h2 class="section-title">Sales History</h2>
+  
+  <div class="list-stack" *ngIf="loading">
+    <div class="skeleton skeleton-card" *ngFor="let i of [1, 2]"></div>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !sales.length">
+    <i class="bi bi-cup-straw text-muted" style="font-size: 3rem;"></i>
+    <h4>No milk sales found</h4>
+    <p>Record milk sales to manage third party or bulk dispatches/local sales.</p>
+  </div>
+
+  <div class="list-stack" *ngIf="!loading && sales.length">
+    <article class="list-item" *ngFor="let s of sales">
+      <div class="avatar bg-teal">
+        <i class="bi bi-cup-straw"></i>
+      </div>
+      <div class="list-item-body">
+        <h3 class="list-item-title">{{ s.buyerName }}</h3>
+        <p class="list-item-sub">
+          {{ s.saleDate | date:'mediumDate' }} · {{ s.shift | uppercase }} · {{ s.animalType | uppercase }}
+        </p>
+        <p class="list-item-meta mt-1" style="font-size: 0.8rem; color: #666666;">
+          {{ s.quantity | number:'1.2-2' }}L x ₹{{ s.rate | number:'1.2-2' }}
+        </p>
+      </div>
+      <div class="text-end d-flex align-items-center gap-2">
+        <div class="text-teal fw-bold" style="font-size: 1.05rem;">₹{{ s.totalAmount | number:'1.2-2' }}</div>
+        <button class="btn btn-sm btn-link p-0 text-danger" type="button" (click)="remove(s.id)" title="Delete Entry">
+          <i class="bi bi-trash-fill" style="font-size: 1.1rem;"></i>
+        </button>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- Footer Totals -->
+<div class="p-3 bg-light border-top sticky-bottom-totals" *ngIf="!loading && sales.length" style="font-family: monospace; font-size: 0.88rem; color: #333333; border-top: 2px solid #cbd5e1; position: sticky; bottom: 0; background-color: #f8fafc; z-index: 10;">
+  <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 4px;">
+    <span>Total Quantity:</span>
+    <span class="text-dark">{{ totalQuantitySold | number:'1.2-2' }} L</span>
+  </div>
+  <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 0.95rem;">
+    <span>Total Revenue:</span>
+    <span class="text-teal">₹{{ totalRevenue | number:'1.2-2' }}</span>
+  </div>
+</div>

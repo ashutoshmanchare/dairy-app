@@ -19,6 +19,12 @@ export class DashboardComponent implements OnInit {
   private readonly authService = inject(AuthService);
   readonly translation = inject(TranslationService);
 
+  routeSubtitle = "[ROUTE 01] Dewale, Mahabaleshwar, Satara, 412806";
+  isEditingRoute = false;
+  
+  dairyName = "श्री ढोकेश्वर दूध संकलन केंद्र तिखोल";
+  isEditingDairyName = false;
+
   recentEntries: MilkCollection[] = [];
   todayMilk = 0;
   todayAmount = 0;
@@ -83,6 +89,8 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.routeSubtitle = localStorage.getItem("dairy_route") || "[ROUTE 01] Dewale, Mahabaleshwar, Satara, 412806";
+    this.dairyName = localStorage.getItem("dairy_name") || "श्री ढोकेश्वर दूध संकलन केंद्र तिखोल";
     this.lastRefreshTime = this.formatRefreshTime();
     this.reportService.getSummary().subscribe({
       next: (summary) => {
@@ -188,5 +196,19 @@ export class DashboardComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  saveRoute(newVal: string): void {
+    const trimmed = newVal.trim();
+    this.routeSubtitle = trimmed || "[ROUTE 01] Dewale, Mahabaleshwar, Satara, 412806";
+    localStorage.setItem("dairy_route", this.routeSubtitle);
+    this.isEditingRoute = false;
+  }
+
+  saveDairyName(newVal: string): void {
+    const trimmed = newVal.trim();
+    this.dairyName = trimmed || "श्री ढोकेश्वर दूध संकलन केंद्र तिखोल";
+    localStorage.setItem("dairy_name", this.dairyName);
+    this.isEditingDairyName = false;
   }
 }

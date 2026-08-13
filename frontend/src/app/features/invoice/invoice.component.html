@@ -1,154 +1,95 @@
-<section class="page-head no-print">
-  <div>
-    <h1 class="page-title">Billing Slip (Invoice)</h1>
-    <p>Generate period summaries and printing memos for farmers</p>
+<!-- Teal Header Bar -->
+<div class="amcu-header no-print">
+  <button class="back-btn" type="button" (click)="goBack()">
+    <i class="bi bi-arrow-left"></i>
+  </button>
+  
+  <div class="title-wrap" style="color: white;">
+    <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Invoices</h1>
+    <p style="font-size: 0.75rem; margin: 0; opacity: 0.9; text-transform: uppercase; font-weight: 600;">{{ dairyName }}</p>
   </div>
-  <i class="bi bi-receipt-cutoff text-teal" style="font-size: 2.2rem;"></i>
-</section>
-
-<!-- Invoice Generator Inputs -->
-<section class="dm-card mb-4 no-print">
-  <h2 class="section-title">Invoice Filters</h2>
-  <form [formGroup]="form" (ngSubmit)="generateInvoice()">
-    <label class="form-label">Search Farmer</label>
-    <input
-      class="form-control mb-2"
-      type="search"
-      placeholder="Type farmer name or code..."
-      [(ngModel)]="customerFilter"
-      [ngModelOptions]="{ standalone: true }"
-    />
-    <select class="form-select mb-3" formControlName="customerId">
-      <option [ngValue]="0">Select Farmer</option>
-      <option *ngFor="let c of filteredCustomers" [ngValue]="c.id">
-        #{{ c.farmerCode }} · {{ c.name }} · {{ c.village }}
-      </option>
-    </select>
-
-    <div class="row g-3 mb-3">
-      <div class="col-6">
-        <label class="form-label">Start Date</label>
-        <input class="form-control" type="date" formControlName="startDate" />
-      </div>
-      <div class="col-6">
-        <label class="form-label">End Date</label>
-        <input class="form-control" type="date" formControlName="endDate" />
-      </div>
-    </div>
-
-    <button class="btn btn-dairy btn-full" type="submit" [disabled]="loadingSummary">
-      <span class="spinner" *ngIf="loadingSummary" style="width:16px;height:16px;border-width:2px;"></span>
-      <i class="bi bi-file-earmark-text" *ngIf="!loadingSummary"></i>
-      {{ loadingSummary ? "Generating..." : "Generate Invoice Memo" }}
+  
+  <div class="header-actions d-flex align-items-center gap-3">
+    <!-- Refresh trigger -->
+    <button class="btn btn-link p-0 text-white" type="button" (click)="generateBatchInvoices()" title="Refresh Invoices">
+      <i class="bi bi-arrow-clockwise" style="font-size: 1.3rem;"></i>
     </button>
-  </form>
-</section>
-
-<!-- Printable Invoice Preview -->
-<div class="alert alert-info no-print mb-4" *ngIf="summary">
-  <i class="bi bi-info-circle me-1"></i> Use your browser's Print option or click the **Print Slip** button below.
+    <i class="bi bi-three-dots-vertical"></i>
+  </div>
 </div>
 
-<section class="dm-card receipt shadow-sm" *ngIf="summary && selectedCustomer">
-  <!-- Invoice Header -->
-  <div class="text-center mb-4">
-    <h2 class="fw-bold m-0 text-teal">SHREE DAIRY</h2>
-    <p class="text-muted small m-0">Milk Collection & Distribution Center</p>
-    <p class="text-muted small m-0">Village: Dharashiv, Maharashtra</p>
-    <hr class="my-2" />
-    <h5 class="fw-semibold">BILLING INVOICE SLIP</h5>
+<!-- Dropdown options + Generate button (Screenshot 5 style) -->
+<div class="no-print" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background-color: #ffffff; border-bottom: 1px solid #e0e0e0; gap: 12px;">
+  <div style="flex: 1;">
+    <select class="form-select" style="background-color: #f5f5f5; border: none; font-size: 0.95rem; font-weight: 500; color: #333333; outline: none; border-radius: 4px; padding: 8px 12px; box-shadow: none;">
+      <option value="invoice">Invoice</option>
+    </select>
   </div>
-
-  <!-- Meta Info -->
-  <div class="row g-2 mb-3 small">
-    <div class="col-6">
-      <strong>Farmer Name:</strong> {{ selectedCustomer.name }}<br />
-      <strong>Farmer Code:</strong> #{{ selectedCustomer.farmerCode }}<br />
-      <strong>Village:</strong> {{ selectedCustomer.village || 'N/A' }}
-    </div>
-    <div class="col-6 text-end">
-      <strong>Start Date:</strong> {{ form.value.startDate | date: 'mediumDate' }}<br />
-      <strong>End Date:</strong> {{ form.value.endDate | date: 'mediumDate' }}<br />
-      <strong>Date Generated:</strong> {{ newDate | date: 'shortDate' }}
-    </div>
-  </div>
-
-  <!-- Milk Collection Table -->
-  <h6 class="fw-bold border-bottom pb-1 small">COLLECTION ENTRIES</h6>
-  <div class="table-responsive mb-3">
-    <table class="table table-sm table-striped small align-middle">
-      <thead>
-        <tr class="table-teal text-teal">
-          <th>Date</th>
-          <th>Shift</th>
-          <th>Type</th>
-          <th>Qty (L)</th>
-          <th>FAT</th>
-          <th>SNF</th>
-          <th>Rate</th>
-          <th class="text-end">Amount</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let row of milkRows">
-          <td>{{ row.entryDate | date: 'dd-MM' }}</td>
-          <td>{{ row.shift | uppercase }}</td>
-          <td>{{ row.animalType | uppercase }}</td>
-          <td>{{ row.quantity }}</td>
-          <td>{{ row.fat }}%</td>
-          <td>{{ row.snf }}%</td>
-          <td>₹{{ row.rate }}</td>
-          <td class="text-end">₹{{ row.totalAmount | number: '1.2-2' }}</td>
-        </tr>
-        <tr *ngIf="!milkRows.length">
-          <td colspan="8" class="text-center text-muted">No collections recorded in this date range.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Calculation Summary Panel -->
-  <h6 class="fw-bold border-bottom pb-1 small">PAYMENT SUMMARY</h6>
-  <div class="row g-3 small">
-    <div class="col-7">
-      <div class="d-flex justify-content-between py-1">
-        <span>Total Milk Volume:</span>
-        <strong>{{ summary.totalQuantity | number: '1.2-2' }} L</strong>
-      </div>
-      <div class="d-flex justify-content-between py-1">
-        <span>Gross Bill Amount:</span>
-        <span>₹{{ summary.grossAmount | number: '1.2-2' }}</span>
-      </div>
-      <div class="d-flex justify-content-between py-1">
-        <span>Feed & Medicine Deductions:</span>
-        <span class="text-danger">- ₹{{ summary.totalDeductions | number: '1.2-2' }}</span>
-      </div>
-      <div class="d-flex justify-content-between py-1 border-bottom">
-        <span>Advance Cash Recovered:</span>
-        <span class="text-danger">- ₹{{ summary.advanceRecovery | number: '1.2-2' }}</span>
-      </div>
-      <div class="d-flex justify-content-between py-2 fw-bold text-teal fs-6">
-        <span>NET PAYABLE AMOUNT:</span>
-        <span>₹{{ summary.netAmount | number: '1.2-2' }}</span>
-      </div>
-    </div>
-    
-    <div class="col-5 border-start ps-3 d-flex flex-column justify-content-between">
-      <div>
-        <strong>Bank Details:</strong><br />
-        <span class="small text-muted">{{ selectedCustomer.bankDetails || 'No bank details registered' }}</span>
-      </div>
-      <div class="text-center pt-3 border-top mt-2">
-        <div style="height: 40px;"></div>
-        <span class="small text-muted border-top pt-1 px-3 d-inline-block">Authorized Sign</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Print & Share Actions -->
-  <div class="d-flex gap-2 mt-4 no-print">
-    <button class="btn btn-dairy btn-full" type="button" (click)="print()">
-      <i class="bi bi-printer"></i> Print Slip
+  <div>
+    <button class="btn btn-outline-primary" type="button" (click)="generateBatchInvoices()" style="border-color: #319f96; color: #319f96; font-size: 0.9rem; font-weight: 600; padding: 6px 16px; border-radius: 4px; min-height: 0; display: inline-flex; align-items: center; background: transparent;">
+      Generate Invoice
     </button>
   </div>
-</section>
+</div>
+
+<!-- Calendar range picker (Screenshot 5 style) -->
+<div class="no-print" style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background-color: #ffffff; border-bottom: 1px solid #e0e0e0; font-size: 0.9rem; font-weight: 500; color: #555555;">
+  <i class="bi bi-calendar-range text-secondary" style="font-size: 1.1rem; color: #666666 !important;"></i>
+  <div style="display: flex; align-items: center; gap: 4px;">
+    <form [formGroup]="form" style="display: inline-flex; align-items: center; gap: 6px;">
+      <input type="date" formControlName="startDate" style="border: none; background: none; font-size: 0.85rem; font-weight: 500; color: #555555; outline: none;" />
+      <span>-</span>
+      <input type="date" formControlName="endDate" style="border: none; background: none; font-size: 0.85rem; font-weight: 500; color: #555555; outline: none;" />
+    </form>
+  </div>
+</div>
+
+<!-- Invoices scrollable list (Screenshot 5 style) -->
+<div style="background-color: #ffffff; min-height: 250px;">
+  <div class="list-stack" *ngIf="loadingSummary">
+    <div class="skeleton skeleton-card" *ngFor="let i of [1, 2, 3]"></div>
+  </div>
+
+  <div class="empty-state py-5 text-center" *ngIf="!loadingSummary && !invoiceRecords.length">
+    <i class="bi bi-receipt text-muted" style="font-size: 3rem;"></i>
+    <p class="small text-muted mt-2">No invoices generated for selected dates</p>
+  </div>
+
+  <!-- Replicated logs item list cards -->
+  <div *ngIf="!loadingSummary && invoiceRecords.length">
+    <div class="amcu-list-item" *ngFor="let row of invoiceRecords; let idx = index" style="background-color: white; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; padding: 12px 16px;">
+      <!-- Sequence index number -->
+      <div class="idx-stack-col" style="display: flex; align-items: center; justify-content: center; width: 40px; margin-right: 12px;">
+        <span class="idx-num" style="font-size: 1.3rem; font-weight: 300; color: #a0a0a0; line-height: 1;">{{ row.farmerCode }}</span>
+      </div>
+      
+      <div class="body-col" style="flex: 1;">
+        <p class="name" style="font-size: 1rem; font-weight: 500; color: #333333; margin: 0; font-family: sans-serif;">{{ row.customerName }}</p>
+      </div>
+      
+      <!-- Right side details: amount in green, deduction in pink -->
+      <div class="amt-col text-end" style="text-align: right; width: 130px; padding-left: 8px;">
+        <p class="amount m-0 fw-bold" style="font-size: 1.05rem; color: #2a8b82; margin: 0 0 2px 0;">{{ row.payment | number: '1.2-2' }}₹</p>
+        <p class="formula m-0" style="font-size: 0.75rem; color: #e91e63; margin: 0;" *ngIf="row.deduction > 0">{{ row.amount | number: '1.2-2' }}₹</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Summary table footer at bottom (Screenshot 5 style) -->
+<div class="p-3 bg-light border-top" *ngIf="!loadingSummary && invoiceRecords.length" style="font-family: monospace; font-size: 0.88rem; color: #333333;">
+  <div style="display: grid; grid-template-columns: repeat(5, 1fr); text-align: center; font-weight: bold; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; color: #888888;">
+    <span>Rate</span>
+    <span>Liter</span>
+    <span>Amount</span>
+    <span>Deduction</span>
+    <span>Payment</span>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(5, 1fr); text-align: center; padding-top: 6px; font-weight: bold; color: #333333; font-size: 0.95rem;">
+    <span>{{ totalRate | number:'1.2-2' }}</span>
+    <span>{{ totalLiter | number:'1.2-2' }}</span>
+    <span>{{ totalAmount | number:'1.2-2' }}</span>
+    <span style="color: #e91e63;">{{ totalDeduction | number:'1.2-2' }}</span>
+    <span style="color: #2f9f95;">{{ totalPayment | number:'1.2-2' }}</span>
+  </div>
+</div>

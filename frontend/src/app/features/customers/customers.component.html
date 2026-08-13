@@ -1,10 +1,32 @@
-<section class="page-head">
-  <div>
-    <h1 class="page-title">{{ translation.t('farmers_list') }}</h1>
-    <p>{{ customers.length }} {{ translation.t('nav_customers') }}</p>
+<!-- Teal Header Bar -->
+<div class="amcu-header no-print">
+  <button class="back-btn" type="button" (click)="goBack()">
+    <i class="bi bi-arrow-left"></i>
+  </button>
+  
+  <div class="title-wrap" style="color: white;">
+    <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Customers</h1>
+    <p style="font-size: 0.75rem; margin: 0; opacity: 0.9; text-transform: uppercase; font-weight: 600;">{{ dairyName }}</p>
   </div>
-  <i class="bi bi-people-fill text-teal" style="font-size: 2.2rem;"></i>
-</section>
+  
+  <div class="header-actions d-flex align-items-center gap-3">
+    <button class="btn btn-link p-0 text-white" type="button" (click)="openAdd()" title="Add Customer">
+      <i class="bi bi-plus-lg" style="font-size: 1.3rem;"></i>
+    </button>
+    <i class="bi bi-three-dots-vertical"></i>
+  </div>
+</div>
+
+<!-- Search Bar -->
+<div class="no-print" style="padding: 12px 16px; background-color: #ffffff; border-bottom: 1px solid #e0e0e0;">
+  <input 
+    type="text" 
+    class="form-control" 
+    placeholder="Type code, mobile, name" 
+    [(ngModel)]="searchTerm" 
+    style="background-color: #f5f5f5; border: none; border-radius: 4px; padding: 8px 12px; font-size: 0.95rem; outline: none; box-shadow: none; width: 100%;"
+  />
+</div>
 
 <div class="success-toast" *ngIf="msg">
   <span class="check"><i class="bi bi-check-lg"></i></span>
@@ -15,40 +37,43 @@
   <div class="skeleton skeleton-card" *ngFor="let i of [1, 2, 3]"></div>
 </div>
 
-<div class="empty-state" *ngIf="!loading && !customers.length">
+<div class="empty-state py-5" *ngIf="!loading && !filteredCustomers.length">
   <i class="bi bi-people text-muted" style="font-size: 3rem;"></i>
-  <h4>{{ translation.t('no_farmers') }}</h4>
-  <button class="btn btn-dairy" type="button" (click)="openAdd()">
-    <i class="bi bi-person-plus-fill"></i> {{ translation.t('register_farmer') }}
+  <h4>No Farmers Found</h4>
+  <button class="btn btn-dairy mt-2" type="button" (click)="openAdd()">
+    <i class="bi bi-person-plus-fill"></i> Add New Farmer
   </button>
 </div>
 
-<div class="list-stack" *ngIf="!loading && customers.length">
-  <article class="list-item" *ngFor="let c of customers">
-    <div class="avatar bg-teal">#{{ c.farmerCode }}</div>
-    <div class="list-item-body">
-      <h3 class="list-item-title">{{ c.name }}</h3>
-      <p class="list-item-sub">{{ translation.t('village') }}: {{ c.village || 'N/A' }} · {{ translation.t('mobile_no') }}: {{ c.mobile }}</p>
-      <div class="list-item-meta mt-1">
-        <span class="badge bg-secondary text-white"><i class="bi bi-cow"></i> {{ translation.t('default_cat') }}: {{ c.defaultAnimalType | uppercase }}</span>
-        <span class="badge bg-success text-white" *ngIf="c.status === 'active'">{{ translation.t('active') }}</span>
-        <span class="badge bg-danger text-white" *ngIf="c.status === 'inactive'">{{ translation.t('inactive') }}</span>
-      </div>
+<!-- Customers list log -->
+<div class="list-stack" *ngIf="!loading && filteredCustomers.length" style="background-color: #ffffff; margin: 0;">
+  <article class="list-item" *ngFor="let c of filteredCustomers" style="display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid #e0e0e0;">
+    <!-- Circular avatar with index code -->
+    <div class="avatar" style="width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid #2f9f95; background-color: white; color: #2f9f95; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 500; flex-shrink: 0; margin-right: 16px;">
+      {{ c.farmerCode || '0' }}
     </div>
-    <div class="d-flex flex-column gap-2">
-      <button class="btn btn-sm btn-dairy-outline" type="button" (click)="edit(c)" aria-label="Edit farmer">
-        <i class="bi bi-pencil"></i>
+    
+    <div class="list-item-body" style="flex: 1;">
+      <h3 class="list-item-title" style="font-size: 1.05rem; font-weight: 500; color: #333333; margin: 0 0 2px 0; font-family: sans-serif;">{{ c.name }}</h3>
+      <p class="list-item-sub" style="font-size: 0.8rem; color: #888888; margin: 0;">{{ c.mobile }}</p>
+    </div>
+    
+    <div class="d-flex align-items-center gap-3">
+      <!-- Edit trigger -->
+      <button class="btn btn-link p-0 text-secondary" type="button" (click)="edit(c)" aria-label="Edit farmer" title="Edit Profile">
+        <i class="bi bi-pencil" style="font-size: 1.1rem; color: #7f8c8d;"></i>
       </button>
-      <button class="btn btn-sm btn-dairy-danger" type="button" (click)="remove(c.id)" aria-label="Delete farmer">
-        <i class="bi bi-trash"></i>
+      <!-- Delete trigger -->
+      <button class="btn btn-link p-0 text-secondary" type="button" (click)="remove(c.id)" aria-label="Delete farmer" title="Delete Profile">
+        <i class="bi bi-trash" style="font-size: 1.1rem; color: #e74c3c;"></i>
       </button>
+      <!-- Phone Call trigger -->
+      <a href="tel:{{ c.mobile }}" class="btn btn-link p-0 text-dark d-flex align-items-center justify-content-center" style="text-decoration: none;" title="Call Farmer">
+        <i class="bi bi-telephone-fill" style="font-size: 1.2rem; color: #333333;"></i>
+      </a>
     </div>
   </article>
 </div>
-
-<button class="fab no-print" type="button" (click)="openAdd()" aria-label="Add farmer" *ngIf="customers.length || !loading">
-  <i class="bi bi-plus-lg"></i>
-</button>
 
 <div class="modal-sheet no-print" *ngIf="showForm" (click)="closeForm()">
   <div class="modal-sheet-card" (click)="$event.stopPropagation()">

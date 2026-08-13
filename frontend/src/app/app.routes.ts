@@ -13,6 +13,12 @@ import { AdvanceComponent } from "./features/advance/advance.component";
 import { DeductionComponent } from "./features/deduction/deduction.component";
 import { FeedComponent } from "./features/feed/feed.component";
 import { InvoiceComponent } from "./features/invoice/invoice.component";
+import { MilkSaleComponent } from "./features/milk-sale/milk-sale.component";
+import { ExpenseComponent } from "./features/expense/expense.component";
+import { NoticeComponent } from "./features/notice/notice.component";
+import { BonusComponent } from "./features/bonus/bonus.component";
+import { DispatchComponent } from "./features/dispatch/dispatch.component";
+import { ReceiveComponent } from "./features/receive/receive.component";
 
 export const routes: Routes = [
   { path: "login", component: LoginComponent },
@@ -27,6 +33,12 @@ export const routes: Routes = [
   { path: "deduction", component: DeductionComponent, canActivate: [authGuard] },
   { path: "feed", component: FeedComponent, canActivate: [authGuard] },
   { path: "invoice", component: InvoiceComponent, canActivate: [authGuard] },
+  { path: "milk-sale", component: MilkSaleComponent, canActivate: [authGuard] },
+  { path: "expense", component: ExpenseComponent, canActivate: [authGuard] },
+  { path: "notice", component: NoticeComponent, canActivate: [authGuard] },
+  { path: "bonus", component: BonusComponent, canActivate: [authGuard] },
+  { path: "dispatch", component: DispatchComponent, canActivate: [authGuard] },
+  { path: "receive", component: ReceiveComponent, canActivate: [authGuard] },
   { path: "more", component: MoreComponent, canActivate: [authGuard] },
   { path: "", redirectTo: "dashboard", pathMatch: "full" },
   { path: "**", redirectTo: "dashboard" }

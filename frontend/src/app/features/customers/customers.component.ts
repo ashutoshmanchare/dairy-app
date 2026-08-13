@@ -1,23 +1,29 @@
 import { CommonModule } from "@angular/common";
 import { Component, OnInit, inject } from "@angular/core";
-import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
+import { Router } from "@angular/router";
 import { Customer } from "../../core/models/customer.model";
 import { CustomerService } from "../../core/services/customer.service";
-
 import { TranslationService } from "../../core/services/translation.service";
 
 @Component({
   selector: "app-customers",
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: "./customers.component.html"
 })
 export class CustomersComponent implements OnInit {
   private readonly service = inject(CustomerService);
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
   readonly translation = inject(TranslationService);
 
+  get dairyName(): string {
+    return localStorage.getItem("dairy_name") || "श्री ढोकेश्वर दूध संकलन केंद्र तिखोल";
+  }
+
   customers: Customer[] = [];
+  searchTerm = "";
   editingId: number | null = null;
   msg = "";
   errorMsg = "";
@@ -35,6 +41,21 @@ export class CustomersComponent implements OnInit {
     joiningDate: [""],
     status: ["active", [Validators.required]]
   });
+
+  get filteredCustomers(): Customer[] {
+    const q = this.searchTerm.trim().toLowerCase();
+    if (!q) return this.customers;
+    return this.customers.filter((c) => {
+      const code = (c.farmerCode || "").toString().toLowerCase();
+      const mobile = (c.mobile || "").toString();
+      const name = (c.name || "").toLowerCase();
+      return name.includes(q) || code.includes(q) || mobile.includes(q);
+    });
+  }
+
+  goBack(): void {
+    this.router.navigate(["/dashboard"]);
+  }
 
   ngOnInit(): void {
     this.load();

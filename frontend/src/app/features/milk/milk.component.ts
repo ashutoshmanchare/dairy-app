@@ -25,6 +25,10 @@ export class MilkComponent implements OnInit {
   private readonly offlineService = inject(OfflineService);
   readonly translation = inject(TranslationService);
 
+  get dairyName(): string {
+    return localStorage.getItem("dairy_name") || "श्री ढोकेश्वर दूध संकलन केंद्र तिखोल";
+  }
+
   @ViewChild("farmerCodeInput") farmerCodeInput!: ElementRef;
 
   customers: Customer[] = [];
@@ -136,13 +140,33 @@ export class MilkComponent implements OnInit {
     return clean.slice(0, 6) + "XXXX";
   }
 
+  formatToLocalDate(dateInput: any): string {
+    if (!dateInput) return "";
+    const dateObj = new Date(dateInput);
+    if (isNaN(dateObj.getTime())) return "";
+    const yyyy = dateObj.getFullYear();
+    const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const dd = String(dateObj.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  getYesterdayDateString(): string {
+    const activeDateVal = this.form.get("entryDate")?.value;
+    const dateObj = activeDateVal ? new Date(activeDateVal) : new Date();
+    dateObj.setDate(dateObj.getDate() - 1);
+    const dd = String(dateObj.getDate()).padStart(2, "0");
+    const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const yyyy = dateObj.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }
+
   updateYesterdayInfo(customerId: number): void {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().slice(0, 10);
+    const yesterdayStr = this.formatToLocalDate(yesterday);
     
     const match = this.collections.find(
-      (c) => c.customerId === customerId && (c.entryDate || "").toString().slice(0, 10) === yesterdayStr
+      (c) => c.customerId === customerId && this.formatToLocalDate(c.entryDate) === yesterdayStr
     );
     
     if (match) {
@@ -203,8 +227,9 @@ export class MilkComponent implements OnInit {
 
   // Summary footer calculations
   get filteredCollections(): MilkCollection[] {
+    const formDate = this.form.get("entryDate")?.value || "";
     return this.collections.filter((c) => {
-      const dateMatch = (c.entryDate || "").toString().slice(0, 10) === (this.form.get("entryDate")?.value || "").slice(0, 10);
+      const dateMatch = this.formatToLocalDate(c.entryDate) === this.formatToLocalDate(formDate);
       const shiftMatch = c.shift === this.listShiftFilter;
       const animalMatch = c.animalType === this.listAnimalFilter;
       return dateMatch && shiftMatch && animalMatch;
@@ -342,6 +367,10 @@ export class MilkComponent implements OnInit {
       this.msg = "Saved offline (Pending sync)";
       this.lastSavedEntry = offlineEntry;
       
+      // Auto-switch list filters to matches saved record
+      this.listShiftFilter = payload.shift;
+      this.listAnimalFilter = payload.animalType;
+      
       this.resetForm();
       this.load();
 
@@ -362,6 +391,10 @@ export class MilkComponent implements OnInit {
         this.msg = "Milk entry saved successfully!";
         this.saving = false;
         this.lastSavedEntry = res;
+        
+        // Auto-switch list filters to matches saved record
+        this.listShiftFilter = payload.shift;
+        this.listAnimalFilter = payload.animalType;
         
         this.resetForm();
         this.load();

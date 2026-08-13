@@ -3,9 +3,13 @@ import { pool } from "../config/db.js";
 // Get all rate charts
 export const getRateCharts = async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      "SELECT * FROM rate_charts ORDER BY effective_from DESC, id DESC"
-    );
+    const [rows] = await pool.query(`
+      SELECT id, name, animal_type AS animalType, calculation_type AS calculationType,
+             fixed_rate AS fixedRate, base_fat AS baseFat, base_snf AS baseSnf,
+             base_rate AS baseRate, effective_from AS effectiveFrom, is_active AS isActive
+      FROM rate_charts 
+      ORDER BY effective_from DESC, id DESC
+    `);
     return res.status(200).json(rows);
   } catch (error) {
     return res.status(500).json({ message: "Failed to fetch rate charts", error: error.message });

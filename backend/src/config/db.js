@@ -197,6 +197,84 @@ const createTables = async () => {
       FOREIGN KEY (center_id) REFERENCES collection_centers(id) ON DELETE SET NULL
     )
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS milk_sales (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      buyer_name VARCHAR(150) NOT NULL,
+      sale_date DATE NOT NULL,
+      shift ENUM('morning', 'evening') NOT NULL,
+      animal_type ENUM('cow', 'buffalo') NOT NULL,
+      quantity DECIMAL(10, 2) NOT NULL,
+      rate DECIMAL(10, 2) NOT NULL,
+      total_amount DECIMAL(10, 2) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS dairy_expenses (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(150) NOT NULL,
+      amount DECIMAL(10, 2) NOT NULL,
+      expense_date DATE NOT NULL,
+      notes TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS notices (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      title VARCHAR(150) NOT NULL,
+      content TEXT NOT NULL,
+      notice_date DATE NOT NULL,
+      is_active TINYINT DEFAULT 1,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS bonuses (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      customer_id INT NOT NULL,
+      year INT NOT NULL,
+      total_milk DECIMAL(12, 2) NOT NULL,
+      bonus_rate DECIMAL(5, 2) NOT NULL,
+      bonus_amount DECIMAL(10, 2) NOT NULL,
+      status ENUM('pending', 'paid') DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS milk_dispatches (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      dispatch_date DATE NOT NULL,
+      shift ENUM('morning', 'evening') NOT NULL,
+      vehicle_no VARCHAR(50),
+      tanker_no VARCHAR(50),
+      quantity DECIMAL(10, 2) NOT NULL,
+      fat DECIMAL(5, 2) NOT NULL,
+      snf DECIMAL(5, 2) NOT NULL,
+      status ENUM('pending', 'dispatched', 'received') DEFAULT 'dispatched',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS milk_received (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      received_date DATE NOT NULL,
+      shift ENUM('morning', 'evening') NOT NULL,
+      source VARCHAR(150) NOT NULL,
+      quantity DECIMAL(10, 2) NOT NULL,
+      fat DECIMAL(5, 2) NOT NULL,
+      snf DECIMAL(5, 2) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 };
 
 const seedDefaultAdmin = async () => {
@@ -217,6 +295,8 @@ const seedDefaultAdmin = async () => {
     }
   }
 };
+
+
 
 export const connectDB = async () => {
   try {

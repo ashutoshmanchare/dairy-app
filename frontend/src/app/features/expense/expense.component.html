@@ -1,0 +1,110 @@
+<!-- Teal Header Bar -->
+<div class="amcu-header no-print">
+  <button class="back-btn" type="button" (click)="goBack()">
+    <i class="bi bi-arrow-left"></i>
+  </button>
+  <div class="title-wrap" style="color: white;">
+    <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Dairy Expense</h1>
+    <p style="font-size: 0.75rem; margin: 0; opacity: 0.9; text-transform: uppercase; font-weight: 600;">श्री ढोकेश्वर दूध संकलन केंद्र</p>
+  </div>
+  <div class="header-actions">
+    <i class="bi bi-calculator-fill text-white" style="font-size: 1.4rem;"></i>
+  </div>
+</div>
+
+<div class="success-toast" *ngIf="msg">
+  <span class="check"><i class="bi bi-check-lg"></i></span>
+  <span>{{ msg }}</span>
+</div>
+
+<div class="alert alert-danger mx-3 my-2" *ngIf="errorMsg" style="padding: 10px 14px; border-radius: 4px; font-size: 0.9rem;">
+  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+  <span>{{ errorMsg }}</span>
+</div>
+
+<!-- Record Expense Form -->
+<section class="dm-card mb-4 mt-3">
+  <h2 class="section-title">Log Dairy Expense</h2>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    
+    <div class="mb-3">
+      <label class="form-label">Expense Title (खर्च तपशील)</label>
+      <input 
+        class="form-control" 
+        [class.is-invalid]="form.get('title')?.touched && form.get('title')?.invalid"
+        type="text" 
+        formControlName="title" 
+        placeholder="e.g. Electric Bill, Rent, Stationery" 
+      />
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-6">
+        <label class="form-label">Date (तारीख)</label>
+        <input class="form-control" type="date" formControlName="expenseDate" />
+      </div>
+      <div class="col-6">
+        <label class="form-label">Amount (रक्कम)</label>
+        <div class="field-unit">
+          <input class="form-control" type="number" step="0.01" formControlName="amount" placeholder="0.00" />
+          <span class="unit">₹</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label">Notes / Remarks</label>
+      <textarea class="form-control" rows="2" formControlName="notes" placeholder="Optional notes..."></textarea>
+    </div>
+
+    <button class="btn btn-dairy btn-full" type="submit" [disabled]="saving">
+      <span class="spinner" *ngIf="saving" style="width:16px;height:16px;border-width:2px;"></span>
+      <i class="bi bi-save" *ngIf="!saving"></i>
+      {{ saving ? "Saving..." : "Log Expense" }}
+    </button>
+  </form>
+</section>
+
+<!-- Expense History -->
+<section class="mb-5">
+  <h2 class="section-title">Expense History</h2>
+  
+  <div class="list-stack" *ngIf="loading">
+    <div class="skeleton skeleton-card" *ngFor="let i of [1, 2]"></div>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !expenses.length">
+    <i class="bi bi-calculator-fill text-muted" style="font-size: 3rem;"></i>
+    <h4>No expenses logged</h4>
+    <p>Keep track of all your daily operational expenses in one place.</p>
+  </div>
+
+  <div class="list-stack" *ngIf="!loading && expenses.length">
+    <article class="list-item" *ngFor="let e of expenses">
+      <div class="avatar bg-danger text-white">
+        <i class="bi bi-dash-circle-fill"></i>
+      </div>
+      <div class="list-item-body">
+        <h3 class="list-item-title">{{ e.title }}</h3>
+        <p class="list-item-sub">{{ e.expenseDate | date:'mediumDate' }}</p>
+        <p class="list-item-meta mt-1" style="font-size: 0.8rem; color: #666666;" *ngIf="e.notes">
+          {{ e.notes }}
+        </p>
+      </div>
+      <div class="text-end d-flex align-items-center gap-2">
+        <div class="text-danger fw-bold" style="font-size: 1.05rem;">₹{{ e.amount | number:'1.2-2' }}</div>
+        <button class="btn btn-sm btn-link p-0 text-danger" type="button" (click)="remove(e.id)" title="Delete Entry">
+          <i class="bi bi-trash-fill" style="font-size: 1.1rem;"></i>
+        </button>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- Footer Totals -->
+<div class="p-3 bg-light border-top sticky-bottom-totals" *ngIf="!loading && expenses.length" style="font-family: monospace; font-size: 0.88rem; color: #333333; border-top: 2px solid #cbd5e1; position: sticky; bottom: 0; background-color: #f8fafc; z-index: 10;">
+  <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 0.95rem;">
+    <span>Total Expenses:</span>
+    <span class="text-danger">₹{{ totalExpenseAmount | number:'1.2-2' }}</span>
+  </div>
+</div>

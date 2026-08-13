@@ -1,0 +1,105 @@
+<!-- Teal Header Bar -->
+<div class="amcu-header no-print">
+  <button class="back-btn" type="button" (click)="goBack()">
+    <i class="bi bi-arrow-left"></i>
+  </button>
+  <div class="title-wrap" style="color: white;">
+    <h1 style="font-size: 1.25rem; font-weight: 700; margin: 0;">Notice Board</h1>
+    <p style="font-size: 0.75rem; margin: 0; opacity: 0.9; text-transform: uppercase; font-weight: 600;">श्री ढोकेश्वर दूध संकलन केंद्र</p>
+  </div>
+  <div class="header-actions">
+    <i class="bi bi-clipboard-check-fill text-white" style="font-size: 1.4rem;"></i>
+  </div>
+</div>
+
+<div class="success-toast" *ngIf="msg">
+  <span class="check"><i class="bi bi-check-lg"></i></span>
+  <span>{{ msg }}</span>
+</div>
+
+<div class="alert alert-danger mx-3 my-2" *ngIf="errorMsg" style="padding: 10px 14px; border-radius: 4px; font-size: 0.9rem;">
+  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+  <span>{{ errorMsg }}</span>
+</div>
+
+<!-- Publish Notice Form -->
+<section class="dm-card mb-4 mt-3">
+  <h2 class="section-title">Publish Announcement</h2>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    
+    <div class="mb-3">
+      <label class="form-label">Notice Title (शीर्षक)</label>
+      <input 
+        class="form-control" 
+        [class.is-invalid]="form.get('title')?.touched && form.get('title')?.invalid"
+        type="text" 
+        formControlName="title" 
+        placeholder="e.g. Milk Rate Revision / Meeting Notice" 
+      />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Date</label>
+      <input class="form-control" type="date" formControlName="noticeDate" />
+    </div>
+
+    <div class="mb-4">
+      <label class="form-label">Notice Content (माहिती / संदेश)</label>
+      <textarea 
+        class="form-control" 
+        [class.is-invalid]="form.get('content')?.touched && form.get('content')?.invalid"
+        rows="3" 
+        formControlName="content" 
+        placeholder="Type the notice message here..."
+      ></textarea>
+    </div>
+
+    <button class="btn btn-dairy btn-full" type="submit" [disabled]="saving">
+      <span class="spinner" *ngIf="saving" style="width:16px;height:16px;border-width:2px;"></span>
+      <i class="bi bi-megaphone" *ngIf="!saving"></i>
+      {{ saving ? "Publishing..." : "Publish Notice" }}
+    </button>
+  </form>
+</section>
+
+<!-- Active Notices -->
+<section class="mb-5">
+  <h2 class="section-title">Notice Board Log</h2>
+  
+  <div class="list-stack" *ngIf="loading">
+    <div class="skeleton skeleton-card" *ngFor="let i of [1, 2]"></div>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !notices.length">
+    <i class="bi bi-megaphone text-muted" style="font-size: 3rem;"></i>
+    <h4>No notices published</h4>
+    <p>Announcements and rules published here will be visible to farmers.</p>
+  </div>
+
+  <div class="list-stack" *ngIf="!loading && notices.length">
+    <article class="list-item d-flex flex-column align-items-start p-3 gap-2" *ngFor="let n of notices" [class.border-teal]="n.isActive === 1" style="border-left: 4px solid #cbd5e1;">
+      <div class="d-flex justify-content-between align-items-center w-100">
+        <h3 class="list-item-title mb-0 fw-bold" style="font-size: 1.05rem;">{{ n.title }}</h3>
+        <span class="badge" [ngClass]="n.isActive === 1 ? 'bg-success text-white' : 'bg-secondary text-white'">
+          {{ n.isActive === 1 ? 'Active' : 'Archived' }}
+        </span>
+      </div>
+      
+      <p style="font-size: 0.88rem; color: #475569; margin: 0; line-height: 1.5; white-space: pre-wrap;">
+        {{ n.content }}
+      </p>
+      
+      <div class="d-flex justify-content-between align-items-center w-100 mt-2 pt-2 border-top" style="font-size: 0.78rem; color: #888888;">
+        <span>Published Date: {{ n.noticeDate | date:'mediumDate' }}</span>
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-sm btn-outline-secondary py-1" type="button" (click)="toggleActive(n)">
+            {{ n.isActive === 1 ? 'Archive' : 'Activate' }}
+          </button>
+          <button class="btn btn-sm btn-outline-danger py-1" type="button" (click)="remove(n.id)">
+            Delete
+          </button>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
