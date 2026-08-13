@@ -46,6 +46,7 @@ app.use("/api/bonuses", bonusRoutes);
 app.use("/api/dispatches", dispatchRoutes);
 app.use("/api/receives", receiveRoutes);
 
+// Trigger live db reconnect
 app.use((_req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
