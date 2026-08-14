@@ -62,6 +62,8 @@ export class MilkComponent implements OnInit {
   loading = true;
   saving = false;
   msg = "";
+  lastSavedSmsText = "";
+  lastSavedMobile = "";
   
   customerFilter = "";
 
@@ -437,8 +439,9 @@ export class MilkComponent implements OnInit {
     const shiftLabel = collection.shift === "morning" ? "सकाळ" : "संध्याकाळ";
     const smsText = `श्री ढोकेश्वर दूध संकलन center:\nदिनांक: ${formattedDate} (${shiftLabel})\nशेतकरी: ${farmer.name}\nदूध: ${collection.quantity}L, FAT: ${collection.fat}%, SNF: ${collection.snf}%\nदर: Rs.${collection.rate}, एकूण: Rs.${collection.totalAmount}`;
 
-    const smsUrl = `sms:${cleanMobile}?body=${encodeURIComponent(smsText)}`;
-    window.location.href = smsUrl;
+    // Store latest receipt text for optional WhatsApp/SMS sharing button (NO auto-redirect)
+    this.lastSavedSmsText = smsText;
+    this.lastSavedMobile = cleanMobile;
   }
 
   setActiveField(field: "farmerCode" | "quantity" | "fat" | "snf" | "clr"): void {
