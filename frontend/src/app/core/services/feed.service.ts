@@ -1,47 +1,8 @@
-import { Injectable, inject } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { Observable, of } from "rxjs";
-import { map, catchError } from "rxjs/operators";
+import { Injectable } from "@angular/core";
+import { Observable, BehaviorSubject, of } from "rxjs";
 
-const PROJECT_ID = "dairy-app-7a68c";
-const API_KEY = "AIzaSyCEXw6-59VzlT14VPEz9q0AS2ZujpkaRDM";
-const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
-
-function fromDoc(doc: any): any {
-  if (!doc?.fields) return {};
-  const r: any = {};
-  for (const [k, v] of Object.entries<any>(doc.fields)) r[k] = parseVal(v);
-  if (doc.name) r["id"] = doc.name.split("/").pop();
-  return r;
-}
-function parseVal(v: any): any {
-  if (v.stringValue !== undefined) return v.stringValue;
-  if (v.integerValue !== undefined) return Number(v.integerValue);
-  if (v.doubleValue !== undefined) return Number(v.doubleValue);
-  if (v.booleanValue !== undefined) return v.booleanValue;
-  if (v.nullValue !== undefined) return null;
-  if (v.timestampValue !== undefined) return v.timestampValue;
-  if (v.arrayValue) return (v.arrayValue.values || []).map(parseVal);
-  if (v.mapValue) return fromDoc(v.mapValue);
-  return null;
-}
-function toFields(data: any): any {
-  const f: any = {};
-  for (const [k, v] of Object.entries(data)) {
-    if (k === "id") continue;
-    f[k] = toVal(v);
-  }
-  return f;
-}
-function toVal(v: any): any {
-  if (v === null || v === undefined) return { nullValue: null };
-  if (typeof v === "boolean") return { booleanValue: v };
-  if (typeof v === "number") return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
-  if (typeof v === "string") return { stringValue: v };
-  if (Array.isArray(v)) return { arrayValue: { values: v.map(toVal) } };
-  if (typeof v === "object") return { mapValue: { fields: toFields(v) } };
-  return { stringValue: String(v) };
-}
+const KEY_ITEMS = "dairy_app_feed_items_v1";
+const KEY_SALES = "dairy_app_feed_sales_v1";
 
 export interface FeedItem {
   id: string | number;
@@ -64,43 +25,83 @@ export interface FeedSaleRecord {
   saleDate: string;
 }
 
+const DEFAULT_FEED_ITEMS: FeedItem[] = [
+  { id: "feed_1", name: "सरकी पेंड (Sarki Pend)", price: 1650, stockQuantity: 50, unit: "bag" },
+  { id: "feed_2", name: "गोळी पेंड (Goli Pend)", price: 1450, stockQuantity: 30, unit: "bag" },
+  { id: "feed_3", name: "मका भरडा (Maize Feed)", price: 1200, stockQuantity: 40, unit: "bag" }
+];
+
 @Injectable({ providedIn: "root" })
 export class FeedService {
-  private readonly http = inject(HttpClient);
-  private readonly ITEMS_COL = "feed_items";
-  private readonly SALES_COL = "feed_sales";
+  private readonly _items$ = new BehaviorSubject<FeedItem[]>([]);
+  private readonly _sales$ = new BehaviorSubject<FeedSaleRecord[]>([]);
+
+  constructor() {
+    this.initLocal();
+  }
+
+  private initLocal(): void {
+    try {
+      const rawI = localStorage.getItem(KEY_ITEMS);
+      const items = rawI ? JSON.parse(rawI) : DEFAULT_FEED_ITEMS;
+      this._items$.next(items);
+      if (!rawI) localStorage.setItem(KEY_ITEMS, JSON.stringify(DEFAULT_FEED_ITEMS));
+
+      const rawS = localStorage.getItem(KEY_SALES);
+      this._sales$.next(rawS ? JSON.parse(rawS) : []);
+    } catch {
+      this._items$.next(DEFAULT_FEED_ITEMS);
+      this._sales$.next([]);
+    }
+  }
+
+  private saveItems(data: FeedItem[]): void {
+    try { localStorage.setItem(KEY_ITEMS, JSON.stringify(data)); } catch {}
+  }
+
+  private saveSales(data: FeedSaleRecord[]): void {
+    try { localStorage.setItem(KEY_SALES, JSON.stringify(data)); } catch {}
+  }
 
   getFeedItems(): Observable<FeedItem[]> {
-    return this.http.get<any>(`${BASE}/${this.ITEMS_COL}?key=${API_KEY}`).pipe(
-      map(res => {
-        const docs: FeedItem[] = (res.documents || []).map(fromDoc);
-        return docs.sort((a, b) => String(a.name).localeCompare(String(b.name)));
-      }),
-      catchError(() => of([]))
-    );
+    return of(this._items$.value);
   }
 
   createFeedItem(payload: Omit<FeedItem, "id">): Observable<FeedItem> {
-    const body = { fields: toFields(payload) };
-    return this.http.post<any>(`${BASE}/${this.ITEMS_COL}?key=${API_KEY}`, body).pipe(
-      map(doc => fromDoc(doc) as FeedItem)
-    );
+    const newItem: FeedItem = {
+      ...payload,
+      id: `feed_${Date.now()}`
+    };
+    const updated = [...this._items$.value, newItem];
+    this._items$.next(updated);
+    this.saveItems(updated);
+    return of(newItem);
   }
 
   getFeedSales(): Observable<FeedSaleRecord[]> {
-    return this.http.get<any>(`${BASE}/${this.SALES_COL}?key=${API_KEY}`).pipe(
-      map(res => {
-        const docs: FeedSaleRecord[] = (res.documents || []).map(fromDoc);
-        return docs.sort((a, b) => String(b.saleDate).localeCompare(String(a.saleDate)));
-      }),
-      catchError(() => of([]))
-    );
+    return of(this._sales$.value);
   }
 
   recordFeedSale(payload: { customerId: string | number; feedItemId: string | number; quantity: number; saleDate: string }): Observable<FeedSaleRecord> {
-    const body = { fields: toFields({ ...payload, rate: 0, totalAmount: 0 }) };
-    return this.http.post<any>(`${BASE}/${this.SALES_COL}?key=${API_KEY}`, body).pipe(
-      map(doc => fromDoc(doc) as FeedSaleRecord)
-    );
+    const item = this._items$.value.find(i => String(i.id) === String(payload.feedItemId));
+    const rate = item?.price || 0;
+    const totalAmount = rate * Number(payload.quantity || 0);
+
+    const newSale: FeedSaleRecord = {
+      id: `sale_${Date.now()}`,
+      customerId: payload.customerId,
+      feedItemId: payload.feedItemId,
+      feedItemName: item?.name || "Feed Item",
+      quantity: Number(payload.quantity || 0),
+      rate,
+      totalAmount,
+      saleDate: payload.saleDate || new Date().toISOString().slice(0, 10)
+    };
+
+    const updatedSales = [newSale, ...this._sales$.value];
+    this._sales$.next(updatedSales);
+    this.saveSales(updatedSales);
+
+    return of(newSale);
   }
 }

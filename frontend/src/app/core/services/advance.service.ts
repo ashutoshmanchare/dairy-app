@@ -1,47 +1,7 @@
-import { Injectable, inject } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { Observable, of } from "rxjs";
-import { map, catchError, switchMap } from "rxjs/operators";
+import { Injectable } from "@angular/core";
+import { Observable, BehaviorSubject, of } from "rxjs";
 
-const PROJECT_ID = "dairy-app-7a68c";
-const API_KEY = "AIzaSyCEXw6-59VzlT14VPEz9q0AS2ZujpkaRDM";
-const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
-
-function fromDoc(doc: any): any {
-  if (!doc?.fields) return {};
-  const r: any = {};
-  for (const [k, v] of Object.entries<any>(doc.fields)) r[k] = parseVal(v);
-  if (doc.name) r["id"] = doc.name.split("/").pop();
-  return r;
-}
-function parseVal(v: any): any {
-  if (v.stringValue !== undefined) return v.stringValue;
-  if (v.integerValue !== undefined) return Number(v.integerValue);
-  if (v.doubleValue !== undefined) return Number(v.doubleValue);
-  if (v.booleanValue !== undefined) return v.booleanValue;
-  if (v.nullValue !== undefined) return null;
-  if (v.timestampValue !== undefined) return v.timestampValue;
-  if (v.arrayValue) return (v.arrayValue.values || []).map(parseVal);
-  if (v.mapValue) return fromDoc(v.mapValue);
-  return null;
-}
-function toFields(data: any): any {
-  const f: any = {};
-  for (const [k, v] of Object.entries(data)) {
-    if (k === "id") continue;
-    f[k] = toVal(v);
-  }
-  return f;
-}
-function toVal(v: any): any {
-  if (v === null || v === undefined) return { nullValue: null };
-  if (typeof v === "boolean") return { booleanValue: v };
-  if (typeof v === "number") return Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v };
-  if (typeof v === "string") return { stringValue: v };
-  if (Array.isArray(v)) return { arrayValue: { values: v.map(toVal) } };
-  if (typeof v === "object") return { mapValue: { fields: toFields(v) } };
-  return { stringValue: String(v) };
-}
+const KEY = "dairy_app_advances_v1";
 
 export interface AdvanceRecord {
   id: string | number;
@@ -62,37 +22,54 @@ export interface CustomerAdvanceSummary {
 
 @Injectable({ providedIn: "root" })
 export class AdvanceService {
-  private readonly http = inject(HttpClient);
-  private readonly COL = "advances";
+  private readonly _advances$ = new BehaviorSubject<AdvanceRecord[]>([]);
+
+  constructor() {
+    this.initLocal();
+  }
+
+  private initLocal(): void {
+    try {
+      const raw = localStorage.getItem(KEY);
+      this._advances$.next(raw ? JSON.parse(raw) : []);
+    } catch {
+      this._advances$.next([]);
+    }
+  }
+
+  private saveLocal(data: AdvanceRecord[]): void {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data));
+    } catch (e) {
+      console.warn("Failed to write advances:", e);
+    }
+  }
 
   getAdvances(): Observable<AdvanceRecord[]> {
-    return this.http.get<any>(`${BASE}/${this.COL}?key=${API_KEY}`).pipe(
-      map(res => (res.documents || []).map(fromDoc) as AdvanceRecord[]),
-      catchError(() => of([]))
-    );
+    return of(this._advances$.value);
   }
 
   addAdvance(payload: Omit<AdvanceRecord, "id" | "recoveredAmount">): Observable<AdvanceRecord> {
-    const body = { fields: toFields({ ...payload, recoveredAmount: 0 }) };
-    return this.http.post<any>(`${BASE}/${this.COL}?key=${API_KEY}`, body).pipe(
-      map(doc => fromDoc(doc) as AdvanceRecord)
-    );
+    const newDoc: AdvanceRecord = {
+      ...payload,
+      id: `adv_${Date.now()}`,
+      recoveredAmount: 0
+    };
+    const updated = [newDoc, ...this._advances$.value];
+    this._advances$.next(updated);
+    this.saveLocal(updated);
+    return of(newDoc);
   }
 
   getCustomerAdvanceSummary(customerId: string | number): Observable<CustomerAdvanceSummary> {
-    return this.http.get<any>(`${BASE}/${this.COL}?key=${API_KEY}`).pipe(
-      map(res => {
-        const docs: AdvanceRecord[] = (res.documents || []).map(fromDoc);
-        const filtered = docs.filter(d => String(d.customerId) === String(customerId));
-        let totalAdvance = 0;
-        let totalRecovered = 0;
-        filtered.forEach(d => {
-          totalAdvance += Number(d.amount || 0);
-          totalRecovered += Number(d.recoveredAmount || 0);
-        });
-        return { totalAdvance, totalRecovered, outstandingAdvance: totalAdvance - totalRecovered };
-      }),
-      catchError(() => of({ totalAdvance: 0, totalRecovered: 0, outstandingAdvance: 0 }))
-    );
+    const docs = this._advances$.value;
+    const filtered = docs.filter(d => String(d.customerId) === String(customerId));
+    let totalAdvance = 0;
+    let totalRecovered = 0;
+    filtered.forEach(d => {
+      totalAdvance += Number(d.amount || 0);
+      totalRecovered += Number(d.recoveredAmount || 0);
+    });
+    return of({ totalAdvance, totalRecovered, outstandingAdvance: totalAdvance - totalRecovered });
   }
 }
