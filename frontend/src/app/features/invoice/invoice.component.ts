@@ -155,9 +155,9 @@ export class InvoiceComponent implements OnInit {
         }
 
         // Final calculations per customer
-        for (const custIdStr of Object.keys(recordsMap)) {
-          const custId = Number(custIdStr);
+        for (const custId of Object.keys(recordsMap)) {
           const record = recordsMap[custId];
+          if (!record) continue;
           
           const outstandingAdv = outstandingAdvancesMap[custId] || 0;
           const advanceRecovery = Math.min(outstandingAdv, Math.max(0, record.amount - record.deduction));
@@ -166,8 +166,13 @@ export class InvoiceComponent implements OnInit {
           record.rate = record.liter > 0 ? (record.amount / record.liter) : 0;
         }
 
-        // Keep active ones (those who have liters or deductions)
+        // Keep records (either with liters, deductions, or all active customers)
         this.invoiceRecords = Object.values(recordsMap).filter(r => r.liter > 0 || r.deduction > 0);
+        
+        // If no filtered records, show all customers who have milk records
+        if (this.invoiceRecords.length === 0) {
+          this.invoiceRecords = Object.values(recordsMap);
+        }
         
         // Sum totals
         this.totalLiter = this.invoiceRecords.reduce((sum, r) => sum + r.liter, 0);
