@@ -1,10 +1,7 @@
 import { Injectable, inject } from "@angular/core";
-import {
-  Firestore, collection, collectionData, addDoc, doc,
-  query, orderBy, serverTimestamp, getDocs, where
-} from "@angular/fire/firestore";
-import { Observable, from } from "rxjs";
-import { map } from "rxjs/operators";
+import { Observable, of } from "rxjs";
+import { map, catchError } from "rxjs/operators";
+import { FirestoreRestService } from "./firestore-rest.service";
 
 export interface PaymentRecord {
   id: string | number;
@@ -28,30 +25,26 @@ export interface PaymentSummary {
 
 @Injectable({ providedIn: "root" })
 export class PaymentService {
-  private readonly firestore = inject(Firestore);
-  private readonly col = collection(this.firestore, "payments");
+  private readonly db = inject(FirestoreRestService);
 
   getPayments(): Observable<PaymentRecord[]> {
-    return collectionData(query(this.col, orderBy("paymentDate", "desc")), { idField: "id" }) as Observable<PaymentRecord[]>;
+    return this.db.loadPayments().pipe(
+      map(list => [...list].sort((a: any, b: any) => (b.paymentDate || "").localeCompare(a.paymentDate || "")) as PaymentRecord[])
+    );
   }
 
   calculateSummary(payload: { customerId: string | number; startDate: string; endDate: string }): Observable<PaymentSummary> {
-    return from(getDocs(collection(this.firestore, "milk_entries"))).pipe(
-      map(snapshot => {
-        let totalQuantity = 0;
-        let grossAmount = 0;
-        snapshot.docs.forEach((d: any) => {
-          const data = d.data();
-          const matchesCustomer = String(data["customerId"]) === String(payload.customerId);
-          const entryDate = data["entryDate"] || data["date"] || "";
-          if (matchesCustomer && entryDate >= payload.startDate && entryDate <= payload.endDate) {
-            totalQuantity += Number(data["quantity"] || 0);
-            grossAmount += Number(data["totalAmount"] || 0);
-          }
-        });
-        return { totalQuantity, grossAmount, outstandingAdvance: 0, advanceRecovery: 0, totalDeductions: 0, netAmount: grossAmount };
-      })
-    );
+    const entries = this.db.milkSnapshot;
+    let totalQuantity = 0, grossAmount = 0;
+    entries.forEach((d: any) => {
+      const matchesCustomer = String(d["customerId"]) === String(payload.customerId);
+      const entryDate = (d["entryDate"] || d["date"] || "").toString().slice(0, 10);
+      if (matchesCustomer && entryDate >= payload.startDate && entryDate <= payload.endDate) {
+        totalQuantity += Number(d["quantity"] || 0);
+        grossAmount += Number(d["totalAmount"] || 0);
+      }
+    });
+    return of({ totalQuantity, grossAmount, outstandingAdvance: 0, advanceRecovery: 0, totalDeductions: 0, netAmount: grossAmount });
   }
 
   addPayment(payload: {
@@ -64,8 +57,9 @@ export class PaymentService {
     endDate?: string;
     advanceRecovery?: number;
   }): Observable<PaymentRecord> {
-    return from(addDoc(this.col, { ...payload, createdAt: serverTimestamp() })).pipe(
-      map(ref => ({ id: ref.id, ...payload, notes: payload.notes || "" } as PaymentRecord))
+    return this.db.addPayment({ ...payload, notes: payload.notes || "" }).pipe(
+      map(ref => ({ ...ref, notes: payload.notes || "" } as PaymentRecord)),
+      catchError(() => of({ id: "", customerId: payload.customerId, paymentDate: payload.paymentDate, amount: payload.amount, status: payload.status, notes: "" } as PaymentRecord))
     );
   }
 }

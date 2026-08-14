@@ -2,7 +2,7 @@ import { CommonModule } from "@angular/common";
 import { Component, ElementRef, OnInit, ViewChild, inject } from "@angular/core";
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router, RouterModule } from "@angular/router";
-import { Subscription } from "rxjs";
+import { Subscription, combineLatest } from "rxjs";
 import { take } from "rxjs/operators";
 import { Customer } from "../../core/models/customer.model";
 import { MilkCollection } from "../../core/models/milk.model";
@@ -98,9 +98,23 @@ export class MilkComponent implements OnInit {
       shift: currentShift
     });
 
-    this.customerService.getCustomers().pipe(take(1)).subscribe((rows) => {
-      this.customers = rows;
-      this.load();
+    // Load customers AND collections in PARALLEL — not sequential
+    this.loading = true;
+    this.collectionsSub = combineLatest([
+      this.customerService.getCustomers(),
+      this.milkService.getCollections()
+    ]).pipe(take(1)).subscribe({
+      next: ([customers, rows]) => {
+        this.customers = customers;
+        const offlineEntries = this.offlineService.getQueuedEntries().map(e => ({
+          ...e,
+          customerName: customers.find(c => String(c.id) === String(e.customerId))?.name || "Customer",
+          farmerCode: customers.find(c => String(c.id) === String(e.customerId))?.farmerCode || "N/A"
+        }));
+        this.collections = [...offlineEntries, ...rows];
+        this.loading = false;
+      },
+      error: () => { this.loading = false; }
     });
 
     // Listen to changes for auto-rate calculation
