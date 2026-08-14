@@ -136,15 +136,26 @@ export class MilkComponent implements OnInit {
     if (this.collectionsSub) {
       this.collectionsSub.unsubscribe();
     }
-    this.collectionsSub = this.milkService.getCollections().subscribe({
-      next: (rows) => {
-        // Prepend offline queued collections to the list for visibility
+    this.collectionsSub = combineLatest([
+      this.customerService.getCustomers(),
+      this.milkService.getCollections()
+    ]).pipe(take(1)).subscribe({
+      next: ([customers, rows]) => {
+        this.customers = customers;
         const offlineEntries = this.offlineService.getQueuedEntries().map(e => ({
           ...e,
-          customerName: this.customers.find(c => String(c.id) === String(e.customerId))?.name || "Customer",
-          farmerCode: this.customers.find(c => String(c.id) === String(e.customerId))?.farmerCode || "N/A"
+          customerName: customers.find(c => String(c.id) === String(e.customerId))?.name || "Customer",
+          farmerCode: customers.find(c => String(c.id) === String(e.customerId))?.farmerCode || "N/A"
         }));
-        this.collections = [...offlineEntries, ...rows];
+        const mappedRows = rows.map(r => {
+          const farmer = customers.find(c => String(c.id) === String(r.customerId));
+          return {
+            ...r,
+            customerName: r.customerName || farmer?.name || "Customer",
+            farmerCode: r.farmerCode || farmer?.farmerCode || "N/A"
+          };
+        });
+        this.collections = [...offlineEntries, ...mappedRows];
         this.loading = false;
       },
       error: () => {
