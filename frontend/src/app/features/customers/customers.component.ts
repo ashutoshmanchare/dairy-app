@@ -150,14 +150,17 @@ export class CustomersComponent implements OnInit {
       
     request$.subscribe({
       next: () => {
+        const wasEditing = !!this.editingId; // save BEFORE clearing
         this.editingId = null;
         this.form.reset();
         this.showForm = false;
         this.load();
-        this.showToast(this.editingId ? "शेतकरी माहिती अपडेट झाली! ✓" : "नवीन शेतकरी नोंदणी यशस्वी! ✓");
+        this.showToast(wasEditing ? "शेतकरी माहिती अपडेट झाली! ✓" : "नवीन शेतकरी नोंदणी यशस्वी! ✓");
       },
       error: (err) => {
-        this.errorMsg = err.error?.message || "शेतकरी जतन करण्यात अयशस्वी. कृपया पुन्हा प्रयत्न करा.";
+        console.error("Customer save error:", err);
+        this.errorMsg = "शेतकरी जतन करण्यात अयशस्वी. कृपया पुन्हा प्रयत्न करा.";
+        setTimeout(() => this.errorMsg = "", 4000);
       }
     });
   }

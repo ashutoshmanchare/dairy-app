@@ -356,8 +356,12 @@ export class MilkComponent implements OnInit {
   lastSavedEntry: any = null;
 
   submit(): void {
-    if (this.form.invalid || Number(this.form.value.customerId) === 0) {
+    const customerId = this.form.value.customerId;
+    // Firestore IDs are strings — don't use Number() check
+    if (this.form.invalid || !customerId || customerId === "" || customerId === "0") {
       this.form.markAllAsTouched();
+      this.msg = "कृपया शेतकरी कोड टाका आणि सर्व माहिती भरा.";
+      setTimeout(() => this.msg = "", 3000);
       return;
     }
     
@@ -370,68 +374,55 @@ export class MilkComponent implements OnInit {
       snf: Number(val.snf),
       clr: Number(val.clr || 0),
       shift: val.shift as "morning" | "evening",
-      animalType: val.animalType as "cow" | "buffalo"
+      animalType: val.animalType as "cow" | "buffalo",
+      rate: this.calculatedRate,
+      totalAmount: this.totalPreview,
+      customerName: this.selectedCustomerName || ""
     };
 
     if (!this.isOnline) {
       // Offline Flow
-      const offlineEntry = {
-        ...payload,
-        rate: this.calculatedRate,
-        totalAmount: this.totalPreview
-      };
-      
-      this.offlineService.saveToQueue(offlineEntry);
+      this.offlineService.saveToQueue({ ...payload });
       this.msg = "Saved offline (Pending sync)";
-      this.lastSavedEntry = offlineEntry;
-      
-      // Auto-switch list filters to matches saved record
+      this.lastSavedEntry = payload;
       this.listShiftFilter = payload.shift;
       this.listAnimalFilter = payload.animalType;
-      
       this.resetForm();
       this.load();
-
       setTimeout(() => {
         this.msg = "";
-        if (this.farmerCodeInput) {
-          this.farmerCodeInput.nativeElement.focus();
-        }
-      }, 5000); // Keep open slightly longer for WhatsApp button click
-      
+        if (this.farmerCodeInput) this.farmerCodeInput.nativeElement.focus();
+      }, 5000);
       return;
     }
 
     // Online Flow
     this.saving = true;
+    this.msg = "";
     this.milkService.addCollection(payload as any).subscribe({
       next: (res) => {
-        this.msg = "Milk entry saved successfully!";
+        this.msg = "✅ दूध संकलन यशस्वी सेव्ह झाले!";
         this.saving = false;
-        this.lastSavedEntry = res;
-        
-        // Auto-switch list filters to matches saved record
+        this.lastSavedEntry = { ...payload, ...res };
         this.listShiftFilter = payload.shift;
         this.listAnimalFilter = payload.animalType;
-        
         this.resetForm();
         this.load();
-        
-        // Trigger direct SMS message to farmer
+
+        // SMS to farmer
         const farmer = this.customers.find(c => String(c.id) === String(payload.customerId));
-        if (farmer) {
-          this.sendSms(farmer, res);
-        }
+        if (farmer) this.sendSms(farmer, { ...payload, ...res });
 
         setTimeout(() => {
           this.msg = "";
-          if (this.farmerCodeInput) {
-            this.farmerCodeInput.nativeElement.focus();
-          }
-        }, 2000);
+          if (this.farmerCodeInput) this.farmerCodeInput.nativeElement.focus();
+        }, 3000);
       },
-      error: () => {
+      error: (err) => {
         this.saving = false;
+        this.msg = "❌ सेव्ह अयशस्वी. पुन्हा प्रयत्न करा.";
+        console.error("Save error:", err);
+        setTimeout(() => this.msg = "", 4000);
       }
     });
   }
