@@ -189,6 +189,22 @@ export class InvoiceComponent implements OnInit {
     });
   }
 
+  selectedSingleRecord: InvoiceRecord | null = null;
+
+  printPdf(): void {
+    this.selectedSingleRecord = null;
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  }
+
+  printSinglePdf(record: InvoiceRecord): void {
+    this.selectedSingleRecord = record;
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  }
+
   goBack(): void {
     this.router.navigate(["/dashboard"]);
   }
