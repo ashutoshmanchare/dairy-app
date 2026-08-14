@@ -81,12 +81,21 @@ export class CustomersComponent implements OnInit {
     });
   }
 
+  getNextFarmerCode(): string {
+    const codes = this.customers
+      .map(c => parseInt(String(c.farmerCode || ""), 10))
+      .filter(n => !isNaN(n));
+    const max = codes.length > 0 ? Math.max(...codes) : 0;
+    return String(max + 1);
+  }
+
   openAdd(): void {
     this.editingId = null;
     this.errorMsg = "";
     this.form.reset();
     const today = new Date().toISOString().slice(0, 10);
     this.form.patchValue({
+      farmerCode: this.getNextFarmerCode(),
       defaultAnimalType: "cow",
       status: "active",
       joiningDate: today

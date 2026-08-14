@@ -207,7 +207,7 @@ export class MilkComponent implements OnInit {
       return;
     }
 
-    const farmer = this.customers.find((c) => c.farmerCode === trimmed);
+    const farmer = this.customers.find((c) => String(c.farmerCode || "").trim() === trimmed);
     if (farmer) {
       this.form.patchValue({ 
         customerId: String(farmer.id),
@@ -234,7 +234,7 @@ export class MilkComponent implements OnInit {
     const farmer = this.customers.find((c) => String(c.id) === String(id));
     if (farmer) {
       this.form.patchValue({
-        farmerCode: farmer.farmerCode || "",
+        farmerCode: String(farmer.farmerCode || ""),
         animalType: farmer.defaultAnimalType || "cow"
       });
       this.selectedCustomerName = farmer.name;
@@ -293,9 +293,14 @@ export class MilkComponent implements OnInit {
   }
 
   resetForm(): void {
-    this.form.patchValue({
-      farmerCode: "",
+    const today = new Date().toISOString().slice(0, 10);
+    const currentShift = new Date().getHours() >= 15 ? "evening" : "morning";
+    this.form.reset({
       customerId: "",
+      farmerCode: "",
+      entryDate: today,
+      shift: currentShift,
+      animalType: "cow",
       quantity: 0,
       fat: 0,
       snf: 0,
@@ -315,23 +320,15 @@ export class MilkComponent implements OnInit {
     const fat = Number(val.fat || 0);
     const snf = Number(val.snf || 0);
     const qty = Number(val.quantity || 0);
-    const animalType = val.animalType as "cow" | "buffalo";
+    const animalType = (val.animalType as "cow" | "buffalo") || "cow";
 
     if (fat > 0 && snf > 0) {
-      if (this.isOnline) {
-        this.rateChartService.calculateRate(animalType, fat, snf).subscribe({
-          next: (res) => {
-            this.calculatedRate = res.rate;
-            this.totalPreview = qty * res.rate;
-          }
-        });
-      } else {
-        // Simple offline local rates fallback formula (Cow standard, Buffalo standard)
-        const baseRate = animalType === "cow" ? 35.00 : 55.00;
-        this.calculatedRate = baseRate + (fat - 3.5) * 3 + (snf - 8.5) * 2;
-        this.calculatedRate = Math.max(10, Number(this.calculatedRate.toFixed(2)));
-        this.totalPreview = qty * this.calculatedRate;
-      }
+      this.rateChartService.calculateRate(animalType, fat, snf).subscribe({
+        next: (res) => {
+          this.calculatedRate = res.rate;
+          this.totalPreview = Math.round(qty * res.rate * 100) / 100;
+        }
+      });
     } else {
       this.calculatedRate = 0;
       this.totalPreview = 0;
