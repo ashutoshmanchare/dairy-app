@@ -1,6 +1,7 @@
 import { CommonModule, DatePipe } from "@angular/common";
 import { Component, OnInit, inject } from "@angular/core";
 import { RouterLink } from "@angular/router";
+import { catchError, of } from "rxjs";
 import { AuthService } from "../../core/services/auth.service";
 import { MilkCollection } from "../../core/models/milk.model";
 import { MilkService } from "../../core/services/milk.service";
@@ -149,15 +150,16 @@ export class DashboardComponent implements OnInit {
       }
     });
 
-    this.reportService.getDailyReport().subscribe({
+    this.reportService.getDailyReport().pipe(catchError(() => of([]))).subscribe({
       next: (daily) => {
-        const max = Math.max(...daily.map((d) => Number(d.totalQuantity)), 1);
-        this.chartBars = daily
+        const quantities = (daily || []).map((d) => Number(d.totalQuantity || 0));
+        const max = quantities.length > 0 ? Math.max(...quantities, 1) : 1;
+        this.chartBars = (daily || [])
           .slice(0, 7)
           .reverse()
           .map((d) => ({
-            label: new Date(d.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }),
-            value: Math.round((Number(d.totalQuantity) / max) * 100)
+            label: d.date ? new Date(d.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }) : "N/A",
+            value: Math.round((Number(d.totalQuantity || 0) / max) * 100)
           }));
       }
     });

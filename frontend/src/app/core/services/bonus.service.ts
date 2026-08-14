@@ -1,11 +1,14 @@
-import { HttpClient } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
-import { Observable } from "rxjs";
-import { ApiService } from "./api.service";
+import {
+  Firestore, collection, collectionData, addDoc, doc,
+  updateDoc, query, orderBy, serverTimestamp, where, getDocs
+} from "@angular/fire/firestore";
+import { Observable, from } from "rxjs";
+import { map, switchMap } from "rxjs/operators";
 
 export interface BonusRecord {
-  id?: number;
-  customerId: number;
+  id?: string | number;
+  customerId: string | number;
   customerName: string;
   farmerCode: string;
   year: number;
@@ -17,18 +20,31 @@ export interface BonusRecord {
 
 @Injectable({ providedIn: "root" })
 export class BonusService {
-  private readonly http = inject(HttpClient);
-  private readonly api = inject(ApiService);
+  private readonly firestore = inject(Firestore);
+  private readonly col = collection(this.firestore, "bonuses");
 
   getBonuses(year: number): Observable<BonusRecord[]> {
-    return this.http.get<BonusRecord[]>(`${this.api.baseUrl}/bonuses?year=${year}`);
+    return collectionData(query(this.col, where("year", "==", year), orderBy("customerName", "asc")), { idField: "id" }) as Observable<BonusRecord[]>;
   }
 
   calculateBonus(year: number, bonusRate: number): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.api.baseUrl}/bonuses/calculate`, { year, bonusRate });
+    // Get all customers and their milk totals for the year, create bonus records
+    return from(getDocs(collection(this.firestore, "customers"))).pipe(
+      switchMap(custSnap => {
+        const creates = custSnap.docs.map((d: any) => {
+          const cust = d.data() as any;
+          return addDoc(this.col, {
+            customerId: d.id, customerName: cust["name"] || "", farmerCode: cust["farmerCode"] || "",
+            year, totalMilk: 0, bonusRate, bonusAmount: 0, status: "pending", createdAt: serverTimestamp()
+          });
+        });
+        return from(Promise.all(creates));
+      }),
+      map(() => ({ message: "Bonus calculated" }))
+    );
   }
 
-  markBonusPaid(id: number, status: "paid" | "pending"): Observable<any> {
-    return this.http.put(`${this.api.baseUrl}/bonuses/${id}/pay`, { status });
+  markBonusPaid(id: string | number, status: "paid" | "pending"): Observable<any> {
+    return from(updateDoc(doc(this.firestore, "bonuses", String(id)), { status }));
   }
 }

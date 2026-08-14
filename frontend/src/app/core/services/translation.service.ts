@@ -24,7 +24,7 @@ export class TranslationService {
 
   private readonly dictionary: Record<string, { en: string; mr: string }> = {
     // Top-level / Common
-    "brand_title": { en: "Shree Dairy", mr: "श्री डेअरी" },
+    "brand_title": { en: "Shree Dhokeshwar Dairy Tikhol", mr: "श्री ढोकेश्वर दूध संकलन केंद्र तिखोल" },
     "sub_brand": { en: "Management Center", mr: "दूध संकलन केंद्र" },
     "greet_admin": { en: "Good Morning, Admin 👋", mr: "शुभप्रभात, प्रशासक 👋" },
     "logout": { en: "Logout", mr: "लॉगआउट" },

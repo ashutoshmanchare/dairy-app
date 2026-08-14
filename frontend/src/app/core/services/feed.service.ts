@@ -1,10 +1,13 @@
-import { HttpClient } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
-import { Observable } from "rxjs";
-import { ApiService } from "./api.service";
+import {
+  Firestore, collection, collectionData, addDoc,
+  query, orderBy, serverTimestamp
+} from "@angular/fire/firestore";
+import { Observable, from } from "rxjs";
+import { map } from "rxjs/operators";
 
 export interface FeedItem {
-  id: number;
+  id: string | number;
   name: string;
   price: number;
   stockQuantity: number;
@@ -12,11 +15,11 @@ export interface FeedItem {
 }
 
 export interface FeedSaleRecord {
-  id: number;
-  customerId: number;
+  id: string | number;
+  customerId: string | number;
   customerName?: string;
   farmerCode?: string;
-  feedItemId: number;
+  feedItemId: string | number;
   feedItemName?: string;
   quantity: number;
   rate: number;
@@ -26,22 +29,27 @@ export interface FeedSaleRecord {
 
 @Injectable({ providedIn: "root" })
 export class FeedService {
-  private readonly http = inject(HttpClient);
-  private readonly api = inject(ApiService);
+  private readonly firestore = inject(Firestore);
+  private readonly itemsCol = collection(this.firestore, "feed_items");
+  private readonly salesCol = collection(this.firestore, "feed_sales");
 
   getFeedItems(): Observable<FeedItem[]> {
-    return this.http.get<FeedItem[]>(`${this.api.baseUrl}/feed/items`);
+    return collectionData(query(this.itemsCol, orderBy("name", "asc")), { idField: "id" }) as Observable<FeedItem[]>;
   }
 
   createFeedItem(payload: Omit<FeedItem, "id">): Observable<FeedItem> {
-    return this.http.post<FeedItem>(`${this.api.baseUrl}/feed/items`, payload);
+    return from(addDoc(this.itemsCol, { ...payload, createdAt: serverTimestamp() })).pipe(
+      map(ref => ({ id: ref.id, ...payload } as FeedItem))
+    );
   }
 
   getFeedSales(): Observable<FeedSaleRecord[]> {
-    return this.http.get<FeedSaleRecord[]>(`${this.api.baseUrl}/feed/sales`);
+    return collectionData(query(this.salesCol, orderBy("saleDate", "desc")), { idField: "id" }) as Observable<FeedSaleRecord[]>;
   }
 
-  recordFeedSale(payload: { customerId: number; feedItemId: number; quantity: number; saleDate: string }): Observable<FeedSaleRecord> {
-    return this.http.post<FeedSaleRecord>(`${this.api.baseUrl}/feed/sales`, payload);
+  recordFeedSale(payload: { customerId: string | number; feedItemId: string | number; quantity: number; saleDate: string }): Observable<FeedSaleRecord> {
+    return from(addDoc(this.salesCol, { ...payload, createdAt: serverTimestamp() })).pipe(
+      map(ref => ({ id: ref.id, ...payload, rate: 0, totalAmount: 0 } as unknown as FeedSaleRecord))
+    );
   }
 }

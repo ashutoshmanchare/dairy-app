@@ -1,27 +1,36 @@
-import { HttpClient } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
-import { Observable } from "rxjs";
+import {
+  Firestore, collection, collectionData, addDoc, doc,
+  updateDoc, deleteDoc, query, orderBy, serverTimestamp
+} from "@angular/fire/firestore";
+import { Observable, from } from "rxjs";
+import { map } from "rxjs/operators";
 import { Customer } from "../models/customer.model";
-import { ApiService } from "./api.service";
 
 @Injectable({ providedIn: "root" })
 export class CustomerService {
-  private readonly http = inject(HttpClient);
-  private readonly api = inject(ApiService);
+  private readonly firestore = inject(Firestore);
+  private readonly col = collection(this.firestore, "customers");
 
   getCustomers(): Observable<Customer[]> {
-    return this.http.get<Customer[]>(`${this.api.baseUrl}/customers`);
+    return collectionData(query(this.col, orderBy("farmerCode", "asc")), { idField: "id" }) as Observable<Customer[]>;
   }
 
   addCustomer(payload: Omit<Customer, "id">): Observable<Customer> {
-    return this.http.post<Customer>(`${this.api.baseUrl}/customers`, payload);
+    return from(addDoc(this.col, { ...payload, createdAt: serverTimestamp() })).pipe(
+      map(ref => ({ id: ref.id, ...payload } as Customer))
+    );
   }
 
-  updateCustomer(id: number, payload: Omit<Customer, "id">): Observable<Customer> {
-    return this.http.put<Customer>(`${this.api.baseUrl}/customers/${id}`, payload);
+  updateCustomer(id: string | number, payload: Omit<Customer, "id">): Observable<Customer> {
+    return from(updateDoc(doc(this.firestore, "customers", String(id)), { ...payload })).pipe(
+      map(() => ({ id, ...payload } as Customer))
+    );
   }
 
-  deleteCustomer(id: number): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.api.baseUrl}/customers/${id}`);
+  deleteCustomer(id: string | number): Observable<{ message: string }> {
+    return from(deleteDoc(doc(this.firestore, "customers", String(id)))).pipe(
+      map(() => ({ message: "Deleted" }))
+    );
   }
 }

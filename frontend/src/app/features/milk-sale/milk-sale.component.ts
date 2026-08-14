@@ -101,7 +101,7 @@ export class MilkSaleComponent implements OnInit {
     });
   }
 
-  remove(id?: number): void {
+  remove(id?: string | number): void {
     if (!id) return;
     if (confirm("Are you sure you want to delete this milk sale record?")) {
       this.saleService.deleteMilkSale(id).subscribe({

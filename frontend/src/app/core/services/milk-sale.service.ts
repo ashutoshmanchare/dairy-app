@@ -1,10 +1,13 @@
-import { HttpClient } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
-import { Observable } from "rxjs";
-import { ApiService } from "./api.service";
+import {
+  Firestore, collection, collectionData, addDoc, doc,
+  deleteDoc, updateDoc, query, orderBy, serverTimestamp
+} from "@angular/fire/firestore";
+import { Observable, from } from "rxjs";
+import { map } from "rxjs/operators";
 
 export interface MilkSaleRecord {
-  id?: number;
+  id?: string | number;
   buyerName: string;
   saleDate: string;
   shift: "morning" | "evening";
@@ -16,18 +19,21 @@ export interface MilkSaleRecord {
 
 @Injectable({ providedIn: "root" })
 export class MilkSaleService {
-  private readonly http = inject(HttpClient);
-  private readonly api = inject(ApiService);
+  private readonly firestore = inject(Firestore);
+  private readonly col = collection(this.firestore, "milk_sales");
 
   getMilkSales(): Observable<MilkSaleRecord[]> {
-    return this.http.get<MilkSaleRecord[]>(`${this.api.baseUrl}/milk-sales`);
+    return collectionData(query(this.col, orderBy("saleDate", "desc")), { idField: "id" }) as Observable<MilkSaleRecord[]>;
   }
 
   createMilkSale(payload: MilkSaleRecord): Observable<MilkSaleRecord> {
-    return this.http.post<MilkSaleRecord>(`${this.api.baseUrl}/milk-sales`, payload);
+    const totalAmount = payload.quantity * payload.rate;
+    return from(addDoc(this.col, { ...payload, totalAmount, createdAt: serverTimestamp() })).pipe(
+      map(ref => ({ id: ref.id, ...payload, totalAmount }))
+    );
   }
 
-  deleteMilkSale(id: number): Observable<any> {
-    return this.http.delete(`${this.api.baseUrl}/milk-sales/${id}`);
+  deleteMilkSale(id: string | number): Observable<any> {
+    return from(deleteDoc(doc(this.firestore, "milk_sales", String(id))));
   }
 }

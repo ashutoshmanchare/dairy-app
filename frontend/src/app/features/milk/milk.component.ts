@@ -2,6 +2,8 @@ import { CommonModule } from "@angular/common";
 import { Component, ElementRef, OnInit, ViewChild, inject } from "@angular/core";
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router, RouterModule } from "@angular/router";
+import { Subscription } from "rxjs";
+import { take } from "rxjs/operators";
 import { Customer } from "../../core/models/customer.model";
 import { MilkCollection } from "../../core/models/milk.model";
 import { CustomerService } from "../../core/services/customer.service";
@@ -30,6 +32,8 @@ export class MilkComponent implements OnInit {
   }
 
   @ViewChild("farmerCodeInput") farmerCodeInput!: ElementRef;
+
+  private collectionsSub?: Subscription;
 
   customers: Customer[] = [];
   collections: MilkCollection[] = [];
@@ -65,7 +69,7 @@ export class MilkComponent implements OnInit {
   queuedCount = 0;
 
   form = this.fb.group({
-    customerId: [0, [Validators.required, Validators.min(1)]],
+    customerId: ["", [Validators.required]],
     farmerCode: ["", [Validators.required]],
     entryDate: ["", [Validators.required]],
     shift: ["morning", [Validators.required]],
@@ -94,7 +98,7 @@ export class MilkComponent implements OnInit {
       shift: currentShift
     });
 
-    this.customerService.getCustomers().subscribe((rows) => {
+    this.customerService.getCustomers().pipe(take(1)).subscribe((rows) => {
       this.customers = rows;
       this.load();
     });
@@ -108,21 +112,21 @@ export class MilkComponent implements OnInit {
     this.offlineService.isOnline$.subscribe((status) => {
       this.isOnline = status;
       this.queuedCount = this.offlineService.getQueuedEntries().length;
-      if (status) {
-        this.load();
-      }
     });
   }
 
   load(): void {
     this.loading = true;
-    this.milkService.getCollections().subscribe({
+    if (this.collectionsSub) {
+      this.collectionsSub.unsubscribe();
+    }
+    this.collectionsSub = this.milkService.getCollections().subscribe({
       next: (rows) => {
         // Prepend offline queued collections to the list for visibility
         const offlineEntries = this.offlineService.getQueuedEntries().map(e => ({
           ...e,
-          customerName: this.customers.find(c => c.id === e.customerId)?.name || "Customer",
-          farmerCode: this.customers.find(c => c.id === e.customerId)?.farmerCode || "N/A"
+          customerName: this.customers.find(c => String(c.id) === String(e.customerId))?.name || "Customer",
+          farmerCode: this.customers.find(c => String(c.id) === String(e.customerId))?.farmerCode || "N/A"
         }));
         this.collections = [...offlineEntries, ...rows];
         this.loading = false;
@@ -160,7 +164,7 @@ export class MilkComponent implements OnInit {
     return `${dd}/${mm}/${yyyy}`;
   }
 
-  updateYesterdayInfo(customerId: number): void {
+  updateYesterdayInfo(customerId: string | number): void {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = this.formatToLocalDate(yesterday);
@@ -181,7 +185,7 @@ export class MilkComponent implements OnInit {
   onFarmerCodeChange(code: string): void {
     const trimmed = code.trim();
     if (!trimmed) {
-      this.form.patchValue({ customerId: 0 });
+      this.form.patchValue({ customerId: "" });
       this.selectedCustomerName = "";
       this.selectedCustomerMobile = "";
       this.yesterdayQty = 0;
@@ -192,14 +196,14 @@ export class MilkComponent implements OnInit {
     const farmer = this.customers.find((c) => c.farmerCode === trimmed);
     if (farmer) {
       this.form.patchValue({ 
-        customerId: farmer.id,
+        customerId: String(farmer.id),
         animalType: farmer.defaultAnimalType || "cow"
       }, { emitEvent: false });
       this.selectedCustomerName = farmer.name;
       this.selectedCustomerMobile = farmer.mobile || "";
       this.updateYesterdayInfo(farmer.id);
     } else {
-      this.form.patchValue({ customerId: 0 }, { emitEvent: false });
+      this.form.patchValue({ customerId: "" }, { emitEvent: false });
       this.selectedCustomerName = "Farmer Code not found";
       this.selectedCustomerMobile = "";
       this.yesterdayQty = 0;
@@ -213,7 +217,7 @@ export class MilkComponent implements OnInit {
     const parts = targetVal.split(":");
     const id = Number(parts[1]?.trim() || parts[0]?.trim() || targetVal);
 
-    const farmer = this.customers.find((c) => c.id === id);
+    const farmer = this.customers.find((c) => String(c.id) === String(id));
     if (farmer) {
       this.form.patchValue({
         farmerCode: farmer.farmerCode || "",
@@ -277,7 +281,7 @@ export class MilkComponent implements OnInit {
   resetForm(): void {
     this.form.patchValue({
       farmerCode: "",
-      customerId: 0,
+      customerId: "",
       quantity: 0,
       fat: 0,
       snf: 0,
@@ -320,8 +324,8 @@ export class MilkComponent implements OnInit {
     }
   }
 
-  remove(id: number): void {
-    if (id < 0) {
+  remove(id: string | number): void {
+    if (String(id).startsWith("-") || Number(id) < 0) {
       // Remove from offline queue
       let entries = this.offlineService.getQueuedEntries();
       entries = entries.filter(e => e.id !== id);
@@ -399,17 +403,40 @@ export class MilkComponent implements OnInit {
         this.resetForm();
         this.load();
         
+        // Trigger direct SMS message to farmer
+        const farmer = this.customers.find(c => String(c.id) === String(payload.customerId));
+        if (farmer) {
+          this.sendSms(farmer, res);
+        }
+
         setTimeout(() => {
           this.msg = "";
           if (this.farmerCodeInput) {
             this.farmerCodeInput.nativeElement.focus();
           }
-        }, 5000); // Keep open slightly longer for WhatsApp button click
+        }, 2000);
       },
       error: () => {
         this.saving = false;
       }
     });
+  }
+
+  sendSms(farmer: Customer, collection: any): void {
+    if (!farmer || !farmer.mobile) return;
+    const cleanMobile = farmer.mobile.replace(/[^0-9]/g, "");
+    if (!cleanMobile) return;
+    
+    const formattedDate = new Date(collection.entryDate || Date.now()).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short"
+    });
+    
+    const shiftLabel = collection.shift === "morning" ? "सकाळ" : "संध्याकाळ";
+    const smsText = `श्री ढोकेश्वर दूध संकलन center:\nदिनांक: ${formattedDate} (${shiftLabel})\nशेतकरी: ${farmer.name}\nदूध: ${collection.quantity}L, FAT: ${collection.fat}%, SNF: ${collection.snf}%\nदर: Rs.${collection.rate}, एकूण: Rs.${collection.totalAmount}`;
+
+    const smsUrl = `sms:${cleanMobile}?body=${encodeURIComponent(smsText)}`;
+    window.location.href = smsUrl;
   }
 
   setActiveField(field: "farmerCode" | "quantity" | "fat" | "snf" | "clr"): void {
@@ -519,7 +546,7 @@ Thank you! - Dairy Center`;
           const added = this.customers.find(c => c.farmerCode === payload.farmerCode);
           if (added) {
             this.form.patchValue({
-              customerId: added.id,
+              customerId: String(added.id),
               farmerCode: added.farmerCode,
               animalType: added.defaultAnimalType || "cow"
             });

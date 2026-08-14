@@ -1,10 +1,13 @@
-import { HttpClient } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
-import { Observable } from "rxjs";
-import { ApiService } from "./api.service";
+import {
+  Firestore, collection, collectionData, addDoc, doc,
+  deleteDoc, query, orderBy, serverTimestamp
+} from "@angular/fire/firestore";
+import { Observable, from } from "rxjs";
+import { map } from "rxjs/operators";
 
 export interface ReceiveRecord {
-  id?: number;
+  id?: string | number;
   receivedDate: string;
   shift: "morning" | "evening";
   source: string;
@@ -15,18 +18,20 @@ export interface ReceiveRecord {
 
 @Injectable({ providedIn: "root" })
 export class ReceiveService {
-  private readonly http = inject(HttpClient);
-  private readonly api = inject(ApiService);
+  private readonly firestore = inject(Firestore);
+  private readonly col = collection(this.firestore, "milk_received");
 
   getReceives(): Observable<ReceiveRecord[]> {
-    return this.http.get<ReceiveRecord[]>(`${this.api.baseUrl}/receives`);
+    return collectionData(query(this.col, orderBy("receivedDate", "desc")), { idField: "id" }) as Observable<ReceiveRecord[]>;
   }
 
   createReceive(payload: ReceiveRecord): Observable<ReceiveRecord> {
-    return this.http.post<ReceiveRecord>(`${this.api.baseUrl}/receives`, payload);
+    return from(addDoc(this.col, { ...payload, createdAt: serverTimestamp() })).pipe(
+      map(ref => ({ id: ref.id, ...payload }))
+    );
   }
 
-  deleteReceive(id: number): Observable<any> {
-    return this.http.delete(`${this.api.baseUrl}/receives/${id}`);
+  deleteReceive(id: string | number): Observable<any> {
+    return from(deleteDoc(doc(this.firestore, "milk_received", String(id))));
   }
 }

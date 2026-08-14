@@ -13,7 +13,7 @@ export class ReportsComponent implements OnInit {
 
   daily: Array<{ date: string; totalQuantity: number; totalAmount: number }> = [];
   monthly: Array<{ month: string; totalQuantity: number; totalAmount: number }> = [];
-  customer: Array<{ customerId: number; customerName: string; totalQuantity: number; billAmount: number; paidAmount: number; pendingAmount: number }> = [];
+  customer: Array<{ customerId: string | number; customerName: string; totalQuantity: number; billAmount: number; paidAmount: number; pendingAmount: number }> = [];
 
   ngOnInit(): void {
     this.reportService.getDailyReport().subscribe((rows) => (this.daily = rows));

@@ -91,7 +91,7 @@ export class ReceiveComponent implements OnInit {
     });
   }
 
-  remove(id?: number): void {
+  remove(id?: string | number): void {
     if (!id) return;
     if (confirm("Are you sure you want to delete this received record?")) {
       this.receiveService.deleteReceive(id).subscribe({

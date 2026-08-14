@@ -12,7 +12,7 @@ import { DeductionService } from "../../core/services/deduction.service";
 import { PaymentService, PaymentSummary } from "../../core/services/payment.service";
 
 export interface InvoiceRecord {
-  customerId: number;
+  customerId: string | number;
   farmerCode: string;
   customerName: string;
   rate: number;
@@ -111,11 +111,11 @@ export class InvoiceComponent implements OnInit {
           return dateStr >= startDate && dateStr <= endDate && d.isRecovered === 0;
         });
 
-        const recordsMap: Record<number, InvoiceRecord> = {};
+        const recordsMap: Record<string, InvoiceRecord> = {};
         
         // Initialize for each customer
         for (const cust of this.customers) {
-          recordsMap[cust.id] = {
+          recordsMap[String(cust.id)] = {
             customerId: cust.id,
             farmerCode: cust.farmerCode || "N/A",
             customerName: cust.name,
@@ -129,7 +129,7 @@ export class InvoiceComponent implements OnInit {
 
         // Populate milk totals
         for (const col of collectionsFiltered) {
-          const record = recordsMap[col.customerId];
+          const record = recordsMap[String(col.customerId)];
           if (record) {
             record.liter += Number(col.quantity || 0);
             record.amount += Number(col.totalAmount || 0);
@@ -138,18 +138,19 @@ export class InvoiceComponent implements OnInit {
 
         // Populate deductions
         for (const ded of deductionsFiltered) {
-          const record = recordsMap[ded.customerId];
+          const record = recordsMap[String(ded.customerId)];
           if (record) {
             record.deduction += Number(ded.amount || 0);
           }
         }
 
         // Calculate outstanding advances per customer to auto-recover if gross > 0
-        const outstandingAdvancesMap: Record<number, number> = {};
+        const outstandingAdvancesMap: Record<string, number> = {};
         for (const adv of res.advances) {
           const outstanding = Number(adv.amount || 0) - Number(adv.recoveredAmount || 0);
           if (outstanding > 0) {
-            outstandingAdvancesMap[adv.customerId] = (outstandingAdvancesMap[adv.customerId] || 0) + outstanding;
+            const advKey = String(adv.customerId);
+            outstandingAdvancesMap[advKey] = (outstandingAdvancesMap[advKey] || 0) + outstanding;
           }
         }
 

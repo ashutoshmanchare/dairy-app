@@ -89,7 +89,7 @@ export class NoticeComponent implements OnInit {
     });
   }
 
-  remove(id?: number): void {
+  remove(id?: string | number): void {
     if (!id) return;
     if (confirm("Are you sure you want to delete this notice?")) {
       this.noticeService.deleteNotice(id).subscribe({

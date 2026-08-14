@@ -1,11 +1,14 @@
-import { HttpClient } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
-import { Observable } from "rxjs";
-import { ApiService } from "./api.service";
+import {
+  Firestore, collection, collectionData, addDoc, doc,
+  query, orderBy, serverTimestamp, getDocs, where
+} from "@angular/fire/firestore";
+import { Observable, from } from "rxjs";
+import { map } from "rxjs/operators";
 
 export interface PaymentRecord {
-  id: number;
-  customerId: number;
+  id: string | number;
+  customerId: string | number;
   customerName?: string;
   farmerCode?: string;
   paymentDate: string;
@@ -25,19 +28,34 @@ export interface PaymentSummary {
 
 @Injectable({ providedIn: "root" })
 export class PaymentService {
-  private readonly http = inject(HttpClient);
-  private readonly api = inject(ApiService);
+  private readonly firestore = inject(Firestore);
+  private readonly col = collection(this.firestore, "payments");
 
   getPayments(): Observable<PaymentRecord[]> {
-    return this.http.get<PaymentRecord[]>(`${this.api.baseUrl}/payments`);
+    return collectionData(query(this.col, orderBy("paymentDate", "desc")), { idField: "id" }) as Observable<PaymentRecord[]>;
   }
 
-  calculateSummary(payload: { customerId: number; startDate: string; endDate: string }): Observable<PaymentSummary> {
-    return this.http.post<PaymentSummary>(`${this.api.baseUrl}/payments/calculate`, payload);
+  calculateSummary(payload: { customerId: string | number; startDate: string; endDate: string }): Observable<PaymentSummary> {
+    return from(getDocs(collection(this.firestore, "milk_entries"))).pipe(
+      map(snapshot => {
+        let totalQuantity = 0;
+        let grossAmount = 0;
+        snapshot.docs.forEach((d: any) => {
+          const data = d.data();
+          const matchesCustomer = String(data["customerId"]) === String(payload.customerId);
+          const entryDate = data["entryDate"] || data["date"] || "";
+          if (matchesCustomer && entryDate >= payload.startDate && entryDate <= payload.endDate) {
+            totalQuantity += Number(data["quantity"] || 0);
+            grossAmount += Number(data["totalAmount"] || 0);
+          }
+        });
+        return { totalQuantity, grossAmount, outstandingAdvance: 0, advanceRecovery: 0, totalDeductions: 0, netAmount: grossAmount };
+      })
+    );
   }
 
   addPayment(payload: {
-    customerId: number;
+    customerId: string | number;
     paymentDate: string;
     amount: number;
     status: "paid" | "pending";
@@ -46,6 +64,8 @@ export class PaymentService {
     endDate?: string;
     advanceRecovery?: number;
   }): Observable<PaymentRecord> {
-    return this.http.post<PaymentRecord>(`${this.api.baseUrl}/payments`, payload);
+    return from(addDoc(this.col, { ...payload, createdAt: serverTimestamp() })).pipe(
+      map(ref => ({ id: ref.id, ...payload, notes: payload.notes || "" } as PaymentRecord))
+    );
   }
 }

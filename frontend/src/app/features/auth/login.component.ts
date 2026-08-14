@@ -1,5 +1,4 @@
 import { NgIf } from "@angular/common";
-import { HttpErrorResponse } from "@angular/common/http";
 import { Component, inject } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
@@ -36,17 +35,13 @@ export class LoginComponent {
         this.loading = false;
         this.router.navigateByUrl("/");
       },
-      error: (err: HttpErrorResponse) => {
+      error: (err: any) => {
         this.loading = false;
-        if (err.status === 0 || err.status >= 500) {
-          this.error = "Cannot reach server. Is backend running on port 5000?";
+        if (err?.code === "auth/wrong-password" || err?.code === "auth/invalid-credential") {
+          this.error = "चुकीचा पासवर्ड. पुन्हा प्रयत्न करा.";
           return;
         }
-        if (err.status === 401) {
-          this.error = "Invalid username or password";
-          return;
-        }
-        this.error = err.error?.message || "Login failed. Please try again.";
+        this.error = "लॉगिन अयशस्वी. कृपया पुन्हा प्रयत्न करा.";
       }
     });
   }

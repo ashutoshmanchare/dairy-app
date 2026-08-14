@@ -1,6 +1,6 @@
 export interface MilkCollection {
-  id: number;
-  customerId: number;
+  id: string | number;
+  customerId: string | number;
   customerName?: string;
   farmerCode?: string;
   entryDate: string;

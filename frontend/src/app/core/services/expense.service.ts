@@ -1,10 +1,13 @@
-import { HttpClient } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
-import { Observable } from "rxjs";
-import { ApiService } from "./api.service";
+import {
+  Firestore, collection, collectionData, addDoc, doc,
+  deleteDoc, query, orderBy, serverTimestamp
+} from "@angular/fire/firestore";
+import { Observable, from } from "rxjs";
+import { map } from "rxjs/operators";
 
 export interface ExpenseRecord {
-  id?: number;
+  id?: string | number;
   title: string;
   amount: number;
   expenseDate: string;
@@ -13,18 +16,20 @@ export interface ExpenseRecord {
 
 @Injectable({ providedIn: "root" })
 export class ExpenseService {
-  private readonly http = inject(HttpClient);
-  private readonly api = inject(ApiService);
+  private readonly firestore = inject(Firestore);
+  private readonly col = collection(this.firestore, "dairy_expenses");
 
   getExpenses(): Observable<ExpenseRecord[]> {
-    return this.http.get<ExpenseRecord[]>(`${this.api.baseUrl}/expenses`);
+    return collectionData(query(this.col, orderBy("expenseDate", "desc")), { idField: "id" }) as Observable<ExpenseRecord[]>;
   }
 
   createExpense(payload: ExpenseRecord): Observable<ExpenseRecord> {
-    return this.http.post<ExpenseRecord>(`${this.api.baseUrl}/expenses`, payload);
+    return from(addDoc(this.col, { ...payload, createdAt: serverTimestamp() })).pipe(
+      map(ref => ({ id: ref.id, ...payload }))
+    );
   }
 
-  deleteExpense(id: number): Observable<any> {
-    return this.http.delete(`${this.api.baseUrl}/expenses/${id}`);
+  deleteExpense(id: string | number): Observable<any> {
+    return from(deleteDoc(doc(this.firestore, "dairy_expenses", String(id))));
   }
 }

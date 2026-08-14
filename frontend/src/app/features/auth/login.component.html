@@ -4,12 +4,12 @@
     <div class="auth-hero">
       <img class="logo" src="assets/logo/dairy-logo.svg" alt="DairyPro" />
       <img class="illust" src="assets/illustrations/cow.svg" alt="Dairy cow illustration" />
-      <h1>Welcome Back</h1>
-      <p>Manage your dairy business smarter.</p>
+      <h1 style="color: #0f172a; font-size: 1.35rem; font-weight: 700; line-height: 1.4; margin-top: 10px; margin-bottom: 6px; display: block;">श्री ढोकेश्वर दूध संकलन केंद्र तिखोल</h1>
+      <p style="color: #475569; font-size: 0.95rem; font-weight: 500;">दूध संकलन व व्यवस्थापन सिस्टीम</p>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="submit()">
-      <label class="form-label" for="login-username">Username / Mobile</label>
+      <label class="form-label" for="login-username">युजरनेम / मोबाईल नंबर</label>
       <div class="input-group mb-1">
         <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px; border-color: var(--border-soft);">
           <i class="bi bi-person text-secondary"></i>
@@ -20,15 +20,15 @@
           style="border-radius: 0 12px 12px 0;"
           type="text"
           formControlName="username"
-          placeholder="Enter username"
+          placeholder="युजरनेम टाका"
           autocomplete="username"
         />
       </div>
       <small class="text-danger d-block mb-2" *ngIf="form.controls.username.touched && form.controls.username.invalid">
-        Username is required
+        युजरनेम आवश्यक आहे
       </small>
 
-      <label class="form-label mt-2" for="login-password">Password</label>
+      <label class="form-label mt-2" for="login-password">पासवर्ड</label>
       <div class="input-group mb-1">
         <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px; border-color: var(--border-soft);">
           <i class="bi bi-lock text-secondary"></i>
@@ -39,18 +39,18 @@
           style="border-radius: 0 12px 12px 0;"
           type="password"
           formControlName="password"
-          placeholder="Enter password"
+          placeholder="पासवर्ड टाका"
           autocomplete="current-password"
         />
       </div>
       <small class="text-danger d-block mb-2" *ngIf="form.controls.password.touched && form.controls.password.invalid">
-        Password is required
+        पासवर्ड आवश्यक आहे
       </small>
 
       <button class="btn btn-dairy btn-full mt-3" type="submit" [disabled]="loading">
         <span class="spinner" *ngIf="loading" style="width:16px;height:16px;border-width:2px;"></span>
         <i class="bi bi-box-arrow-in-right" *ngIf="!loading"></i>
-        {{ loading ? "Signing in..." : "Login" }}
+        {{ loading ? "लॉगिन होत आहे..." : "लॉगिन करा" }}
       </button>
       <div class="alert alert-danger mt-3 py-2 mb-0" *ngIf="error">{{ error }}</div>
     </form>

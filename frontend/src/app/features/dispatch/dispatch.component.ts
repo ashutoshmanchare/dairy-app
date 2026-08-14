@@ -94,7 +94,7 @@ export class DispatchComponent implements OnInit {
     });
   }
 
-  remove(id?: number): void {
+  remove(id?: string | number): void {
     if (!id) return;
     if (confirm("Are you sure you want to delete this dispatch record?")) {
       this.dispatchService.deleteDispatch(id).subscribe({

@@ -1,5 +1,6 @@
 import { CommonModule } from "@angular/common";
 import { Component, OnInit, inject } from "@angular/core";
+import { Subscription } from "rxjs";
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
 import { Customer } from "../../core/models/customer.model";
@@ -24,7 +25,7 @@ export class CustomersComponent implements OnInit {
 
   customers: Customer[] = [];
   searchTerm = "";
-  editingId: number | null = null;
+  editingId: string | number | null = null;
   msg = "";
   errorMsg = "";
   loading = true;
@@ -57,13 +58,16 @@ export class CustomersComponent implements OnInit {
     this.router.navigate(["/dashboard"]);
   }
 
+  private customerSub?: Subscription;
+
   ngOnInit(): void {
     this.load();
   }
 
   load(): void {
     this.loading = true;
-    this.service.getCustomers().subscribe({
+    if (this.customerSub) this.customerSub.unsubscribe();
+    this.customerSub = this.service.getCustomers().subscribe({
       next: (rows) => {
         this.customers = rows;
         this.loading = false;
@@ -101,7 +105,7 @@ export class CustomersComponent implements OnInit {
     this.form.reset();
   }
 
-  remove(id: number): void {
+  remove(id: string | number): void {
     if (confirm("Are you sure you want to delete this farmer?")) {
       this.service.deleteCustomer(id).subscribe(() => {
         this.msg = "Farmer deleted";

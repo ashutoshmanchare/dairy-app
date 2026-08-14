@@ -1,29 +1,36 @@
-import { HttpClient } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
-import { Observable } from "rxjs";
+import {
+  Firestore, collection, collectionData, addDoc, doc,
+  updateDoc, deleteDoc, query, orderBy, serverTimestamp
+} from "@angular/fire/firestore";
+import { Observable, from } from "rxjs";
+import { map } from "rxjs/operators";
 import { Entry } from "../models/entry.model";
-import { ApiService } from "./api.service";
 
-@Injectable({
-  providedIn: "root"
-})
+@Injectable({ providedIn: "root" })
 export class EntryService {
-  private readonly http = inject(HttpClient);
-  private readonly api = inject(ApiService);
+  private readonly firestore = inject(Firestore);
+  private readonly col = collection(this.firestore, "entries");
 
   getEntries(): Observable<Entry[]> {
-    return this.http.get<Entry[]>(`${this.api.baseUrl}/entries`);
+    return collectionData(query(this.col, orderBy("date", "desc")), { idField: "id" }) as Observable<Entry[]>;
   }
 
   createEntry(payload: Partial<Entry>): Observable<Entry> {
-    return this.http.post<Entry>(`${this.api.baseUrl}/entries`, payload);
+    return from(addDoc(this.col, { ...payload, createdAt: serverTimestamp() })).pipe(
+      map(ref => ({ id: ref.id, ...payload } as Entry))
+    );
   }
 
   updateEntry(id: string, payload: Partial<Entry>): Observable<Entry> {
-    return this.http.put<Entry>(`${this.api.baseUrl}/entries/${id}`, payload);
+    return from(updateDoc(doc(this.firestore, "entries", id), { ...payload })).pipe(
+      map(() => ({ id, ...payload } as Entry))
+    );
   }
 
   deleteEntry(id: string): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.api.baseUrl}/entries/${id}`);
+    return from(deleteDoc(doc(this.firestore, "entries", id))).pipe(
+      map(() => ({ message: "Deleted" }))
+    );
   }
 }

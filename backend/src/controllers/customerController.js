@@ -17,6 +17,7 @@ export const getCustomers = async (_req, res) => {
 
 export const createCustomer = async (req, res) => {
   try {
+    console.log("createCustomer req.body:", req.body);
     const { name, mobile, address, farmerCode, village, bankDetails, defaultAnimalType = 'cow', joiningDate, status = 'active' } = req.body;
     if (!name || !mobile) {
       return res.status(400).json({ message: "Name and mobile are required" });

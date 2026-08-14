@@ -47,7 +47,7 @@ export class RateChartComponent implements OnInit {
     });
   }
 
-  activate(id: number): void {
+  activate(id: string | number): void {
     this.errorMsg = "";
     this.rateChartService.setActiveRateChart(id).subscribe({
       next: (res) => {

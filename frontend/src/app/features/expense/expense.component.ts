@@ -85,7 +85,7 @@ export class ExpenseComponent implements OnInit {
     });
   }
 
-  remove(id?: number): void {
+  remove(id?: string | number): void {
     if (!id) return;
     if (confirm("Are you sure you want to delete this expense entry?")) {
       this.expenseService.deleteExpense(id).subscribe({
