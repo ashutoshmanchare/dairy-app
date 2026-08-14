@@ -7,9 +7,9 @@ const PROJECT_ID = "dairy-app-7a68c";
 const API_KEY = "AIzaSyCEXw6-59VzlT14VPEz9q0AS2ZujpkaRDM";
 const BASE_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
-const KEY_CUSTOMERS = "dairy_app_customers_v3";
-const KEY_MILK = "dairy_app_milk_v3";
-const KEY_PAYMENTS = "dairy_app_payments_v3";
+const KEY_CUSTOMERS = "dairy_app_customers_permanent";
+const KEY_MILK = "dairy_app_milk_permanent";
+const KEY_PAYMENTS = "dairy_app_payments_permanent";
 
 /** Convert Firestore REST API document to plain JS object */
 function fromFirestore(doc: any): any {
@@ -93,20 +93,62 @@ export class FirestoreRestService {
 
   private initLocalData(): void {
     try {
-      const rawC = localStorage.getItem(KEY_CUSTOMERS);
-      const customers = rawC ? JSON.parse(rawC) : SEED_CUSTOMERS;
+      // Migrate from any legacy keys if present
+      const legacyCustomerKeys = ["dairy_app_customers_permanent", "dairy_app_customers_v3", "dairy_local_customers_v2", "dairy_local_customers", "dairy_customers"];
+      let loadedCustomers: any[] | null = null;
+      for (const k of legacyCustomerKeys) {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              loadedCustomers = parsed;
+              break;
+            }
+          } catch {}
+        }
+      }
+      const customers = loadedCustomers || SEED_CUSTOMERS;
       this._customers$.next(customers);
-      if (!rawC) localStorage.setItem(KEY_CUSTOMERS, JSON.stringify(SEED_CUSTOMERS));
+      localStorage.setItem("dairy_app_customers_permanent", JSON.stringify(customers));
 
-      const rawM = localStorage.getItem(KEY_MILK);
-      const milk = rawM ? JSON.parse(rawM) : [];
+      // Milk entries
+      const legacyMilkKeys = ["dairy_app_milk_permanent", "dairy_app_milk_v3", "dairy_local_milk_v2", "dairy_local_milk", "dairy_milk"];
+      let loadedMilk: any[] | null = null;
+      for (const k of legacyMilkKeys) {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              loadedMilk = parsed;
+              break;
+            }
+          } catch {}
+        }
+      }
+      const milk = loadedMilk || [];
       this._milkEntries$.next(milk);
-      if (!rawM) localStorage.setItem(KEY_MILK, JSON.stringify([]));
+      localStorage.setItem("dairy_app_milk_permanent", JSON.stringify(milk));
 
-      const rawP = localStorage.getItem(KEY_PAYMENTS);
-      const payments = rawP ? JSON.parse(rawP) : [];
+      // Payments
+      const legacyPaymentKeys = ["dairy_app_payments_permanent", "dairy_app_payments_v3", "dairy_local_payments_v2", "dairy_local_payments", "dairy_payments"];
+      let loadedPayments: any[] | null = null;
+      for (const k of legacyPaymentKeys) {
+        const raw = localStorage.getItem(k);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              loadedPayments = parsed;
+              break;
+            }
+          } catch {}
+        }
+      }
+      const payments = loadedPayments || [];
       this._payments$.next(payments);
-      if (!rawP) localStorage.setItem(KEY_PAYMENTS, JSON.stringify([]));
+      localStorage.setItem("dairy_app_payments_permanent", JSON.stringify(payments));
     } catch (e) {
       console.warn("Error initializing local database:", e);
       this._customers$.next(SEED_CUSTOMERS);
