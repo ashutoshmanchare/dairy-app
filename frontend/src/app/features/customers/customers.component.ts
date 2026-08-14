@@ -30,6 +30,9 @@ export class CustomersComponent implements OnInit {
   errorMsg = "";
   loading = true;
   showForm = false;
+  showSuccessPopup = false;
+  successPopupMsg = "";
+  private popupTimer?: any;
 
   form = this.fb.group({
     name: ["", [Validators.required]],
@@ -147,16 +150,29 @@ export class CustomersComponent implements OnInit {
       
     request$.subscribe({
       next: () => {
-        this.msg = this.editingId ? "Farmer updated successfully" : "Farmer added successfully";
         this.editingId = null;
         this.form.reset();
         this.showForm = false;
         this.load();
-        setTimeout(() => (this.msg = ""), 3000);
+        this.showToast(this.editingId ? "शेतकरी माहिती अपडेट झाली! ✓" : "नवीन शेतकरी नोंदणी यशस्वी! ✓");
       },
       error: (err) => {
-        this.errorMsg = err.error?.message || "Failed to save farmer profile. Please check inputs.";
+        this.errorMsg = err.error?.message || "शेतकरी जतन करण्यात अयशस्वी. कृपया पुन्हा प्रयत्न करा.";
       }
     });
+  }
+
+  private showToast(message: string): void {
+    this.successPopupMsg = message;
+    this.showSuccessPopup = true;
+    if (this.popupTimer) clearTimeout(this.popupTimer);
+    this.popupTimer = setTimeout(() => {
+      this.showSuccessPopup = false;
+    }, 3000);
+  }
+
+  dismissPopup(): void {
+    this.showSuccessPopup = false;
+    if (this.popupTimer) clearTimeout(this.popupTimer);
   }
 }

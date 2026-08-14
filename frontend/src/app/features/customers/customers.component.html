@@ -28,9 +28,15 @@
   />
 </div>
 
-<div class="success-toast" *ngIf="msg">
-  <span class="check"><i class="bi bi-check-lg"></i></span>
-  <span>{{ msg }}</span>
+<!-- ✅ Success Popup -->
+<div class="success-popup-overlay" *ngIf="showSuccessPopup" (click)="dismissPopup()">
+  <div class="success-popup-card" (click)="$event.stopPropagation()">
+    <div class="success-popup-icon">
+      <i class="bi bi-check-circle-fill"></i>
+    </div>
+    <div class="success-popup-text">{{ successPopupMsg }}</div>
+    <button class="success-popup-btn" (click)="dismissPopup()">ठीक आहे</button>
+  </div>
 </div>
 
 <div class="list-stack" *ngIf="loading">
